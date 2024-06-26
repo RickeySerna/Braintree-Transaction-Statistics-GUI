@@ -9,3 +9,8 @@ gateway = braintree.BraintreeGateway(
       private_key="74a190cdf990805edd5a329d5bff37c0"
   )
 )
+
+client_token = gateway.client_token.generate({
+})
+
+print("Client token: " + client_token);
