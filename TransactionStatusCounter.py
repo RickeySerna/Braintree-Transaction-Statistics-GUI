@@ -1,35 +1,80 @@
 
 import braintree
 import datetime
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
-from PyQt6.QtGui import QPalette, QColor
-
-# Only needed for access to command line arguments
 import sys
+from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QPushButton,
+    QStackedLayout,
+    QVBoxLayout,
+    QWidget,
+)
 
-# Subclass QMainWindow to customize your application's main window
+class Color(QWidget):
+
+    def __init__(self, color):
+        super(Color, self).__init__()
+        self.setAutoFillBackground(True)
+
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(color))
+        self.setPalette(palette)
+
+class TransactionWidget(QWidget):
+    def __init__(self, transaction_data):
+        super(TransactionWidget, self).__init__()
+        self.setAutoFillBackground(True)
+
+        # Example: Display transaction amount
+        successful_transaction_count = QLabel(f"hello testing 123")
+
+        # Example: Display customer name
+        failed_transaction_count = QLabel(f"goodby testing 456")
+
+        # Add labels to layout
+        layout = QVBoxLayout()
+        layout.addWidget(successful_transaction_count)
+        layout.addWidget(failed_transaction_count)
+        self.setLayout(layout)
+
 class MainWindow(QMainWindow):
+
     def __init__(self):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("My App")
+        
+        successful_transaction_count = {"count": "500"}
+        failed_transaction_count = {"count": "50"}
+
+        widget1 = TransactionWidget(successful_transaction_count)
+        widget2 = TransactionWidget(failed_transaction_count)
+
+        layout = QVBoxLayout()
+
+        layout.addWidget(Color('red'))
+        layout.addWidget(Color('green'))
+        layout.addWidget(Color('blue'))
+
+        layout.addWidget(widget1)
+        layout.addWidget(widget2)
+
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
 
 
-# You need one (and only one) QApplication instance per application.
-# Pass in sys.argv to allow command line arguments for your app.
-# If you know you won't use command line arguments QApplication([]) works too.
 app = QApplication(sys.argv)
 
-# Create a Qt widget, which will be our window.
 window = MainWindow()
-window.show()  # IMPORTANT!!!!! Windows are hidden by default.
+window.show()
 
-# Start the event loop.
 app.exec()
 
-
-# Your application won't reach here until you exit and the event
-# loop has stopped.
 
 gateway = braintree.BraintreeGateway(
   braintree.Configuration(
