@@ -14,6 +14,15 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
+gateway = braintree.BraintreeGateway(
+  braintree.Configuration(
+      braintree.Environment.Sandbox,
+      merchant_id="pzrgxphnvtycmdhq",
+      public_key="932hj9f244t2bf6f",
+      private_key="74a190cdf990805edd5a329d5bff37c0"
+  )
+)
+
 class Color(QWidget):
 
     def __init__(self, color):
@@ -29,13 +38,12 @@ class TransactionWidget(QWidget):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
 
-        # Example: Display transaction amount
-        successful_transaction_count = QLabel(f"hello testing 123")
+        successful_count = transaction_counts["successful_transaction_count"]["count"]
+        failed_count = transaction_counts["failed_transaction_count"]["count"]
 
-        # Example: Display customer name
-        failed_transaction_count = QLabel(f"goodby testing 456")
+        successful_transaction_count = QLabel(f"Successful transactions: {successful_count}")
+        failed_transaction_count = QLabel(f"Failed transactions: {failed_count}")
 
-        # Add labels to layout
         layout = QVBoxLayout()
         layout.addWidget(successful_transaction_count)
         layout.addWidget(failed_transaction_count)
@@ -47,12 +55,28 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("My App")
-        
-        successful_transaction_count = {"count": "500"}
-        failed_transaction_count = {"count": "50"}
 
-        widget1 = TransactionWidget(successful_transaction_count)
-        widget2 = TransactionWidget(failed_transaction_count)
+        transaction_counts = {
+            "successful_transaction_count": {"count": 0},
+            "failed_transaction_count": {"count": 0}
+        }
+
+        collection = gateway.transaction.search(
+          braintree.TransactionSearch.created_at.between(
+            datetime.datetime(2024, 6, 1),
+            datetime.datetime(2024, 6, 30)
+          )
+        )
+
+        for transaction in collection.items:
+            if transaction.status in ("authorized", "settling", "settled"):
+                print("Successful transaction: " + transaction.id)
+                transaction_counts["successful_transaction_count"]["count"] += 1
+            elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
+                print("Failed transaction: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+
+        widget1 = TransactionWidget(transaction_counts)
 
         layout = QVBoxLayout()
 
@@ -76,27 +100,7 @@ window.show()
 app.exec()
 
 
-gateway = braintree.BraintreeGateway(
-  braintree.Configuration(
-      braintree.Environment.Sandbox,
-      merchant_id="pzrgxphnvtycmdhq",
-      public_key="932hj9f244t2bf6f",
-      private_key="74a190cdf990805edd5a329d5bff37c0"
-  )
-)
-
 client_token = gateway.client_token.generate({
 })
 
 print("Client token: " + client_token);
-
-collection = gateway.transaction.search(
-  braintree.TransactionSearch.created_at.between(
-    datetime.datetime(2022, 10, 1),
-    datetime.datetime(2022, 12, 31)
-  )
-)
-
-for transaction in collection.items:
-    print (transaction.amount)
-
