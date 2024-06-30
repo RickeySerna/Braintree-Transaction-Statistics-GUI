@@ -1,4 +1,3 @@
-
 import braintree
 import datetime
 import sys
@@ -37,9 +36,9 @@ class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
-
-        successful_count = transaction_counts["successful_transaction_count"]["count"]
-        failed_count = transaction_counts["failed_transaction_count"]["count"]
+        
+        successful_count = transaction_data["successful_transaction_count"]["count"]
+        failed_count = transaction_data["failed_transaction_count"]["count"]
 
         successful_transaction_count = QLabel(f"Successful transactions: {successful_count}")
         failed_transaction_count = QLabel(f"Failed transactions: {failed_count}")
@@ -69,7 +68,7 @@ class MainWindow(QMainWindow):
         )
 
         for transaction in collection.items:
-            if transaction.status in ("authorized", "settling", "settled"):
+            if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
                 print("Successful transaction: " + transaction.id)
                 transaction_counts["successful_transaction_count"]["count"] += 1
             elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
@@ -85,7 +84,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(Color('blue'))
 
         layout.addWidget(widget1)
-        layout.addWidget(widget2)
 
         widget = QWidget()
         widget.setLayout(layout)
