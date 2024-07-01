@@ -1,6 +1,7 @@
 import braintree
 import datetime
 import sys
+from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication,
@@ -11,6 +12,8 @@ from PyQt6.QtWidgets import (
     QStackedLayout,
     QVBoxLayout,
     QWidget,
+    QLineEdit,
+    QCalendarWidget
 )
 
 gateway = braintree.BraintreeGateway(
@@ -55,6 +58,10 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("My App")
 
+        self.calendar = QCalendarWidget(self)
+        self.calendar.setMinimumDate(QDate(2000, 1, 1))
+        self.calendar.setMaximumDate(QDate(2099, 12, 31))
+
         transaction_counts = {
             "successful_transaction_count": {"count": 0},
             "failed_transaction_count": {"count": 0}
@@ -75,15 +82,12 @@ class MainWindow(QMainWindow):
                 print("Failed transaction: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
 
-        widget1 = TransactionWidget(transaction_counts)
+        countWidget = TransactionWidget(transaction_counts)
 
         layout = QVBoxLayout()
 
-        layout.addWidget(Color('red'))
-        layout.addWidget(Color('green'))
-        layout.addWidget(Color('blue'))
-
-        layout.addWidget(widget1)
+        layout.addWidget(self.calendar)
+        layout.addWidget(countWidget)
 
         widget = QWidget()
         widget.setLayout(layout)
@@ -100,5 +104,3 @@ app.exec()
 
 client_token = gateway.client_token.generate({
 })
-
-print("Client token: " + client_token);
