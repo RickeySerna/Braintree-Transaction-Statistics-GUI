@@ -58,9 +58,17 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("My App")
 
+        # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
+
+        # Creating start date and end date variables which will be plugged into the Transaction.search() call.
+        self.start_date = None
+        self.end_date = None
+
+        # Call handle_date_selection function when the user clicks a date in the calendar.
+        self.calendar.selectionChanged.connect(self.handle_date_selection)
 
         transaction_counts = {
             "successful_transaction_count": {"count": 0},
@@ -92,6 +100,23 @@ class MainWindow(QMainWindow):
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
+
+    # This function sets the date range to be searched.
+    def handle_date_selection(self):
+        # First grab the date the user clicked.
+        selected_date = self.calendar.selectedDate()
+
+        # Check if start_date is currently empty.
+        if self.start_date is None:
+            # If it is, set it as the selected date.
+            self.start_date = selected_date
+            print(f"Start date: {self.start_date.toString('yyyy-MM-dd')}")
+        else:
+            # If it's not, instead set end_date as the selected date.
+            self.end_date = selected_date
+            print(f"End date: {self.end_date.toString('yyyy-MM-dd')}")
+            # Reset start_date back to None in case a new search is started.
+            self.start_date = None
 
 
 app = QApplication(sys.argv)
