@@ -67,8 +67,9 @@ class MainWindow(QMainWindow):
         self.start_date = None
         self.end_date = None
 
-        # Call handle_date_selection function when the user clicks a date in the calendar.
-        self.calendar.selectionChanged.connect(self.handle_date_selection)
+        # Call handle_calendar_click function when the user clicks a date in the calendar.
+        # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
+        self.calendar.clicked.connect(self.handle_calendar_click) 
 
         transaction_counts = {
             "successful_transaction_count": {"count": 0},
@@ -78,16 +79,16 @@ class MainWindow(QMainWindow):
         collection = gateway.transaction.search(
           braintree.TransactionSearch.created_at.between(
             datetime.datetime(2024, 6, 1),
-            datetime.datetime(2024, 6, 30)
+            datetime.datetime(2024, 6, 5)
           )
         )
 
         for transaction in collection.items:
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                print("Successful transaction: " + transaction.id)
+                #print("Successful transaction: " + transaction.id)
                 transaction_counts["successful_transaction_count"]["count"] += 1
             elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                print("Failed transaction: " + transaction.id)
+                #print("Failed transaction: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
 
         countWidget = TransactionWidget(transaction_counts)
@@ -101,22 +102,20 @@ class MainWindow(QMainWindow):
         widget.setLayout(layout)
         self.setCentralWidget(widget)
 
-    # This function sets the date range to be searched.
-    def handle_date_selection(self):
-        # First grab the date the user clicked.
-        selected_date = self.calendar.selectedDate()
-
-        # Check if start_date is currently empty.
-        if self.start_date is None:
-            # If it is, set it as the selected date.
-            self.start_date = selected_date
+    # Changing this function up a bit.
+    def handle_calendar_click(self, date):
+        # The start_date and end_date variables are initially set as None.
+        # So first we check if start_date has a value.
+        if not self.start_date:
+            # If not, set it to whatever date was clicked.
+            self.start_date = date
             print(f"Start date: {self.start_date.toString('yyyy-MM-dd')}")
         else:
-            # If it's not, instead set end_date as the selected date.
-            self.end_date = selected_date
+            # If it does, instead set the end_date to whatever date was clicked.
+            self.end_date = date
             print(f"End date: {self.end_date.toString('yyyy-MM-dd')}")
-            # Reset start_date back to None in case a new search is started.
-            self.start_date = None
+        # This function allows the user to enter the same date twice, so the user can search a single date if they want.
+        # TODO: Allow the start_date and end_date to be overwritten. So a new date range can be searched.
 
 
 app = QApplication(sys.argv)
