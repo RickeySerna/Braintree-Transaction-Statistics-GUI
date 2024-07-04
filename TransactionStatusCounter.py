@@ -1,6 +1,7 @@
 import braintree
 import datetime
 import sys
+from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
@@ -69,27 +70,48 @@ class MainWindow(QMainWindow):
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
-        self.calendar.clicked.connect(self.handle_calendar_click) 
+        self.calendar.clicked.connect(self.handle_calendar_click)
 
+        # Calculating todays date and the date 30 days before todays date.
+        # This will be immediately passed into a transaction.search() when the file is run.
+        # This is so that the user can immediately see the stats for their transactions in the last 30 days.
+        # If they want to search a new date range, they're free to do so with the calendar, but the
+        ## last 30 days' data is immediately and quickly supplied.
+
+        # Tack on an extra day when calculating todays date because this method cuts the date time off at 00:00:00.
+        # So adding an extra day effectively makes it search the whole of todays date through midnight. (date = tomorrow at 00:00:... aka midnight of today)
+        todayDate = date.today() + timedelta(days=1)
+        # Format todays date into the format accepted by the transaction.search() call.
+        todayDateFormatted = datetime(todayDate.year, todayDate.month, todayDate.day)
+
+        # Do the exact same thing to get 30 days ago's date, except take away 30 days instead of add 1.
+        thirtyDaysAgo = date.today() - timedelta(days=30)
+        thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
+
+        # Run the transaction.search() call with the dates we just created and store the results into an object.
+        initialCollection = gateway.transaction.search(
+          braintree.TransactionSearch.created_at.between(
+            thirtyDaysAgoFormatted,
+            todayDateFormatted
+          )
+        )
+
+        # Initialize the dictionary we use to count the stats on the transactions.
         transaction_counts = {
             "successful_transaction_count": {"count": 0},
             "failed_transaction_count": {"count": 0}
         }
 
-        collection = gateway.transaction.search(
-          braintree.TransactionSearch.created_at.between(
-            datetime.datetime(2024, 6, 1),
-            datetime.datetime(2024, 6, 5)
-          )
-        )
-
-        for transaction in collection.items:
+        # Go through the transactions we pulled in the search.
+        for transaction in initialCollection.items:
+            # If the transaction  has a successful status, add to the success count in the dictionary.
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                #print("Successful transaction: " + transaction.id)
                 transaction_counts["successful_transaction_count"]["count"] += 1
+            # If the transaction  has a failed status, add to the fail count in the dictionary.
             elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                #print("Failed transaction: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
+
+        # TODO: If the user enters a new search range, destroy these widget created with these stats^ and create a new one.
 
         countWidget = TransactionWidget(transaction_counts)
 
