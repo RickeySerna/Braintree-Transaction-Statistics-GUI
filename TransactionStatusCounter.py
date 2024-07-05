@@ -130,15 +130,53 @@ class MainWindow(QMainWindow):
         # So first we check if start_date has a value.
         if not self.start_date:
             # If not, set it to whatever date was clicked.
-            self.start_date = date
-            print(f"Start date: {self.start_date.toString('yyyy-MM-dd')}")
+            self.start_date = date#datetime(date.year, date.month, date.day)
+            print(f"Start date: {self.start_date}")
         else:
             # If it does, instead set the end_date to whatever date was clicked.
-            self.end_date = date
-            print(f"End date: {self.end_date.toString('yyyy-MM-dd')}")
+            self.end_date = date#datetime(date.year, date.month, date.day)
+            print(f"End date: {self.end_date}")
+            
+            self.new_transaction_search(self.start_date, self.end_date)
         # This function allows the user to enter the same date twice, so the user can search a single date if they want.
         # TODO: Allow the start_date and end_date to be overwritten. So a new date range can be searched.
 
+    def new_transaction_search(self, startDate, endDate):
+
+        print(f"Start date in new_transaction_search: {startDate}")
+        print(f"End date in new_transaction_search: {endDate}")
+
+        transaction_counts = {
+            "successful_transaction_count": {"count": 0},
+            "failed_transaction_count": {"count": 0}
+        }
+        
+        newCollection = gateway.transaction.search(
+          braintree.TransactionSearch.created_at.between(
+            startDate,
+            endDate
+          )
+        )
+
+        for transaction in newCollection.items:
+            # If the transaction  has a successful status, add to the success count in the dictionary.
+            if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
+                transaction_counts["successful_transaction_count"]["count"] += 1
+            # If the transaction  has a failed status, add to the fail count in the dictionary.
+            elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
+                transaction_counts["failed_transaction_count"]["count"] += 1
+
+        update_widget_data(transaction_counts)
+
+
+    def update_widget_data(self, new_data):
+        # Remove the existing widget (if it exists)
+        if hasattr(self, 'countWidget'):
+            self.countWidget.deleteLater()  # Remove the widget from the layout
+
+        # Create a new widget with the updated data
+        self.newCountWidget = TransactionWidget(new_data)
+        self.layout.addWidget(self.newCountWidget)
 
 app = QApplication(sys.argv)
 
