@@ -17,14 +17,6 @@ from PyQt6.QtWidgets import (
     QCalendarWidget
 )
 
-gateway = braintree.BraintreeGateway(
-  braintree.Configuration(
-      braintree.Environment.Sandbox,
-      merchant_id="pzrgxphnvtycmdhq",
-      public_key="932hj9f244t2bf6f",
-      private_key="74a190cdf990805edd5a329d5bff37c0"
-  )
-)
 
 class Color(QWidget):
 
@@ -59,6 +51,15 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("My App")
 
+        self.gateway = braintree.BraintreeGateway(
+          braintree.Configuration(
+              braintree.Environment.Sandbox,
+              merchant_id="pzrgxphnvtycmdhq",
+              public_key="932hj9f244t2bf6f",
+              private_key="74a190cdf990805edd5a329d5bff37c0"
+          )
+        )
+
         # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
@@ -89,7 +90,7 @@ class MainWindow(QMainWindow):
         thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
         # Run the transaction.search() call with the dates we just created and store the results into an object.
-        initialCollection = gateway.transaction.search(
+        initialCollection = self.gateway.transaction.search(
           braintree.TransactionSearch.created_at.between(
             thirtyDaysAgoFormatted,
             todayDateFormatted
@@ -143,30 +144,34 @@ class MainWindow(QMainWindow):
 
     def new_transaction_search(self, startDate, endDate):
 
-        print(f"Start date in new_transaction_search: {startDate}")
-        print(f"End date in new_transaction_search: {endDate}")
+        startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
+        endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day())
 
-        transaction_counts = {
+        new_transaction_counts = {
             "successful_transaction_count": {"count": 0},
             "failed_transaction_count": {"count": 0}
         }
-        
-        newCollection = gateway.transaction.search(
+
+        newCollection = self.gateway.transaction.search(
           braintree.TransactionSearch.created_at.between(
-            startDate,
-            endDate
+            startDateFormatted,
+            endDateFormatted
           )
         )
 
         for transaction in newCollection.items:
             # If the transaction  has a successful status, add to the success count in the dictionary.
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                transaction_counts["successful_transaction_count"]["count"] += 1
+                print("Success transaction ID: " + transaction.id)
+                new_transaction_counts["successful_transaction_count"]["count"] += 1
             # If the transaction  has a failed status, add to the fail count in the dictionary.
             elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                transaction_counts["failed_transaction_count"]["count"] += 1
+                print("Failed transaction ID: " + transaction.id)
+                new_transaction_counts["failed_transaction_count"]["count"] += 1
 
-        update_widget_data(transaction_counts)
+        print(new_transaction_counts)
+
+        update_widget_data(new_transaction_counts)
 
 
     def update_widget_data(self, new_data):
@@ -184,7 +189,3 @@ window = MainWindow()
 window.show()
 
 app.exec()
-
-
-client_token = gateway.client_token.generate({
-})
