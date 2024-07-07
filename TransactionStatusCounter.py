@@ -81,9 +81,9 @@ class MainWindow(QMainWindow):
 
         # Tack on an extra day when calculating todays date because this method cuts the date time off at 00:00:00.
         # So adding an extra day effectively makes it search the whole of todays date through midnight. (date = tomorrow at 00:00:... aka midnight of today)
-        todayDate = date.today() + timedelta(days=1)
+        todayDate = date.today()
         # Format todays date into the format accepted by the transaction.search() call.
-        todayDateFormatted = datetime(todayDate.year, todayDate.month, todayDate.day)
+        todayDateFormatted = datetime(todayDate.year, todayDate.month, todayDate.day, 23, 59, 59)
 
         # Do the exact same thing to get 30 days ago's date, except take away 30 days instead of add 1.
         thirtyDaysAgo = date.today() - timedelta(days=30)
@@ -145,7 +145,10 @@ class MainWindow(QMainWindow):
     def new_transaction_search(self, startDate, endDate):
 
         startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
-        endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day())
+        endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
+
+        print(f"New start date: {startDateFormatted}")
+        print(f"New end date: {endDateFormatted}")
 
         new_transaction_counts = {
             "successful_transaction_count": {"count": 0},
