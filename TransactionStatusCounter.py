@@ -114,15 +114,15 @@ class MainWindow(QMainWindow):
 
         # TODO: If the user enters a new search range, destroy these widget created with these stats^ and create a new one.
 
-        countWidget = TransactionWidget(transaction_counts)
+        self.countWidget = TransactionWidget(transaction_counts)
 
-        layout = QVBoxLayout()
+        self.layout = QVBoxLayout()
 
-        layout.addWidget(self.calendar)
-        layout.addWidget(countWidget)
+        self.layout.addWidget(self.calendar)
+        self.layout.addWidget(self.countWidget)
 
         widget = QWidget()
-        widget.setLayout(layout)
+        widget.setLayout(self.layout)
         self.setCentralWidget(widget)
 
     # Changing this function up a bit.
@@ -174,15 +174,14 @@ class MainWindow(QMainWindow):
 
         print(new_transaction_counts)
 
-        update_widget_data(new_transaction_counts)
+        self.update_widget_data(new_transaction_counts)
 
 
     def update_widget_data(self, new_data):
-        # Remove the existing widget (if it exists)
         if hasattr(self, 'countWidget'):
-            self.countWidget.deleteLater()  # Remove the widget from the layout
+            self.layout.removeWidget(self.countWidget)
+            self.countWidget.deleteLater()
 
-        # Create a new widget with the updated data
         self.newCountWidget = TransactionWidget(new_data)
         self.layout.addWidget(self.newCountWidget)
 
