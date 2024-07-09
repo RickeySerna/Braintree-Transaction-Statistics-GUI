@@ -117,7 +117,6 @@ class MainWindow(QMainWindow):
         self.countWidget = TransactionWidget(transaction_counts)
 
         self.layout = QVBoxLayout()
-
         self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.countWidget)
 
@@ -139,6 +138,9 @@ class MainWindow(QMainWindow):
             print(f"End date: {self.end_date}")
             
             self.new_transaction_search(self.start_date, self.end_date)
+
+            self.start_date = None
+            self.end_date = None
         # This function allows the user to enter the same date twice, so the user can search a single date if they want.
         # TODO: Allow the start_date and end_date to be overwritten. So a new date range can be searched.
 
@@ -182,8 +184,8 @@ class MainWindow(QMainWindow):
             self.layout.removeWidget(self.countWidget)
             self.countWidget.deleteLater()
 
-        self.newCountWidget = TransactionWidget(new_data)
-        self.layout.addWidget(self.newCountWidget)
+        self.countWidget = TransactionWidget(new_data)
+        self.layout.addWidget(self.countWidget)
 
 app = QApplication(sys.argv)
 
