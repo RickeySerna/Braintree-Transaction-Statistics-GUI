@@ -44,6 +44,32 @@ class TransactionWidget(QWidget):
         layout.addWidget(failed_transaction_count)
         self.setLayout(layout)
 
+class DateWidget(QWidget):
+    def __init__(self, start_date, end_date):
+        super(DateWidget, self).__init__()
+
+        formatted_start_date = start_date.strftime("%B %dth, %Y")
+        formatted_end_date = end_date.strftime("%B %dth, %Y")
+        
+        self.search_range = QLabel(f"Search range: {formatted_start_date} - {formatted_end_date}")
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.search_range)
+        self.setLayout(layout)
+
+    def update_date_range(self, start_date, end_date):
+        
+        print(f"Start date inside update_date_range: {start_date}")
+        print(f"End date inside update_date_range: {end_date}")
+        
+        formatted_start_date = start_date.strftime("%B %dth, %Y")
+        formatted_end_date = end_date.strftime("%B %dth, %Y")
+
+        print(formatted_start_date)
+        print(formatted_end_date)
+
+        self.search_range_label.setText(f"Search range: {formatted_start_date} - {formatted_end_date}")
+
 class MainWindow(QMainWindow):
 
     def __init__(self):
@@ -114,10 +140,12 @@ class MainWindow(QMainWindow):
 
         # TODO: If the user enters a new search range, destroy these widget created with these stats^ and create a new one.
 
+        self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
         self.countWidget = TransactionWidget(transaction_counts)
 
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.calendar)
+        self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
 
         widget = QWidget()
@@ -136,6 +164,8 @@ class MainWindow(QMainWindow):
             # If it does, instead set the end_date to whatever date was clicked.
             self.end_date = date#datetime(date.year, date.month, date.day)
             print(f"End date: {self.end_date}")
+
+            self.datesWidget.update_date_range(self.start_date, self.end_date)
             
             self.new_transaction_search(self.start_date, self.end_date)
 
