@@ -61,14 +61,17 @@ class DateWidget(QWidget):
         
         print(f"Start date inside update_date_range: {start_date}")
         print(f"End date inside update_date_range: {end_date}")
-        
-        formatted_start_date = start_date.strftime("%B %dth, %Y")
-        formatted_end_date = end_date.strftime("%B %dth, %Y")
 
-        print(formatted_start_date)
-        print(formatted_end_date)
+        start_python_date = date(start_date.year(), start_date.month(), start_date.day())
+        end_python_date = date(end_date.year(), end_date.month(), end_date.day())
 
-        self.search_range_label.setText(f"Search range: {formatted_start_date} - {formatted_end_date}")
+        formatted_start_date = start_python_date.strftime("%B %dth, %Y")
+        formatted_end_date = end_python_date.strftime("%B %dth, %Y")
+
+        print(f"Formatted start date: {formatted_start_date}")
+        print(f"Formatted end date: {formatted_end_date}")
+
+        self.search_range.setText(f"Search range: {formatted_start_date} - {formatted_end_date}")
 
 class MainWindow(QMainWindow):
 
