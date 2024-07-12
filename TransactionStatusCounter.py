@@ -48,8 +48,8 @@ class DateWidget(QWidget):
     def __init__(self, start_date, end_date):
         super(DateWidget, self).__init__()
 
-        formatted_start_date = start_date.strftime("%B %dth, %Y")
-        formatted_end_date = end_date.strftime("%B %dth, %Y")
+        formatted_start_date = start_date.strftime("%-m/%-d/%Y")
+        formatted_end_date = end_date.strftime("%-m/%-d/%Y")
         
         self.search_range = QLabel(f"Search range: {formatted_start_date} - {formatted_end_date}")
 
@@ -65,8 +65,8 @@ class DateWidget(QWidget):
         start_python_date = date(start_date.year(), start_date.month(), start_date.day())
         end_python_date = date(end_date.year(), end_date.month(), end_date.day())
 
-        formatted_start_date = start_python_date.strftime("%B %dth, %Y")
-        formatted_end_date = end_python_date.strftime("%B %dth, %Y")
+        formatted_start_date = start_python_date.strftime("%-m/%-d/%Y")
+        formatted_end_date = end_python_date.strftime("%-m/%-d/%Y")
 
         print(f"Formatted start date: {formatted_start_date}")
         print(f"Formatted end date: {formatted_end_date}")
