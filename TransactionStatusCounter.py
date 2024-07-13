@@ -2,7 +2,7 @@ import braintree
 import datetime
 import sys
 from datetime import date, datetime, timedelta
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication,
@@ -52,6 +52,8 @@ class DateWidget(QWidget):
         formatted_end_date = end_date.strftime("%-m/%-d/%Y")
         
         self.search_range = QLabel(f"Search range: {formatted_start_date} - {formatted_end_date}")
+        self.search_range.setStyleSheet("text-decoration: underline; color: red;")
+        self.search_range.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         layout = QVBoxLayout()
         layout.addWidget(self.search_range)
