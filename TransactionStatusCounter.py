@@ -1,6 +1,7 @@
 import braintree
 import datetime
 import sys
+import argparse
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QPalette, QColor
@@ -222,9 +223,23 @@ class MainWindow(QMainWindow):
         self.countWidget = TransactionWidget(new_data)
         self.layout.addWidget(self.countWidget)
 
-app = QApplication(sys.argv)
 
-window = MainWindow()
-window.show()
+def main():
 
-app.exec()
+    app = QApplication(sys.argv)
+
+    parser = argparse.ArgumentParser(description="Transaction search")
+    parser.add_argument("start_date", help="Start date (format: MM/DD/YYYY)")
+    parser.add_argument("end_date", help="End date (format: MM/DD/YYYY)")
+    args = parser.parse_args()
+
+    print(f"Start date: {args.start_date}")
+    print(f"End date: {args.end_date}")
+
+    window = MainWindow()
+    window.show()
+
+    sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()
