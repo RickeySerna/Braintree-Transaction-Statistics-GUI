@@ -78,7 +78,7 @@ class DateWidget(QWidget):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    def __init__(self, start_date=None, end_date=None):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("My App")
@@ -98,8 +98,11 @@ class MainWindow(QMainWindow):
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
-        self.start_date = None
-        self.end_date = None
+        self.start_date = start_date
+        self.end_date = end_date
+
+        print(f"self.start_date in MainWindow: {self.start_date}")
+        print(f"self.end_date in MainWindow: {self.end_date}")
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
@@ -229,14 +232,18 @@ def main():
     app = QApplication(sys.argv)
 
     parser = argparse.ArgumentParser(description="Transaction search")
-    parser.add_argument("start_date", help="Start date (format: MM/DD/YYYY)")
-    parser.add_argument("end_date", help="End date (format: MM/DD/YYYY)")
+    parser.add_argument("start_date", nargs="?", default=None, help="Start date (format: MM/DD/YYYY)")
+    parser.add_argument("end_date", nargs="?", default=None, help="End date (format: MM/DD/YYYY)")
     args = parser.parse_args()
 
-    print(f"Start date: {args.start_date}")
-    print(f"End date: {args.end_date}")
+    if args.start_date and args.end_date:
+        print(f"Start date: {args.start_date}")
+        print(f"End date: {args.end_date}")
+    else:
+        print("Using default behavior (search within the last 30 days)")
 
-    window = MainWindow()
+
+    window = MainWindow(args.start_date, args.end_date)
     window.show()
 
     sys.exit(app.exec())
