@@ -101,9 +101,6 @@ class MainWindow(QMainWindow):
         self.start_date = start_date
         self.end_date = end_date
 
-        print(f"self.start_date in MainWindow: {self.start_date}")
-        print(f"self.end_date in MainWindow: {self.end_date}")
-
         if (self.start_date == None) and (self.end_date == None):
             print(f"Do the default search")
 
@@ -146,13 +143,39 @@ class MainWindow(QMainWindow):
                 elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
                     transaction_counts["failed_transaction_count"]["count"] += 1
 
-            # TODO: If the user enters a new search range, destroy these widget created with these stats^ and create a new one.
-
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
             self.countWidget = TransactionWidget(transaction_counts)
             
         else:
             print(f"Use the arguments provided")
+
+            startDate = datetime.strptime(self.start_date, "%m/%d/%Y")
+            endDate = datetime.strptime(self.end_date, "%m/%d/%Y")
+            endDate = endDate.replace(hour=23, minute=59, second=59)
+
+            print(f"Arg formatted startDate in MainWindow: {startDate}")
+            print(f"Arg formatted endDate in MainWindow: {endDate}")
+
+            initialCollection = self.gateway.transaction.search(
+              braintree.TransactionSearch.created_at.between(
+                startDate,
+                endDate
+              )
+            )
+
+            transaction_counts = {
+                "successful_transaction_count": {"count": 0},
+                "failed_transaction_count": {"count": 0}
+            }
+
+            for transaction in initialCollection.items:
+                if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
+                    transaction_counts["successful_transaction_count"]["count"] += 1
+                elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
+                    transaction_counts["failed_transaction_count"]["count"] += 1
+
+            self.datesWidget = DateWidget(startDate, endDate)
+            self.countWidget = TransactionWidget(transaction_counts)
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
