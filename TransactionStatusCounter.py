@@ -256,14 +256,23 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.countWidget)
 
 
-def main():
+def convertToYYYY(date):
+    if date and len(date.split('/')[2]) == 2:
+        parts = date.split('/')
+        parts[2] = "20" + parts[2]
+        return '/'.join(parts)
+    return date
 
+def main():
     app = QApplication(sys.argv)
 
     parser = argparse.ArgumentParser(description="Transaction search")
-    parser.add_argument("start_date", nargs="?", default=None, help="Start date (format: MM/DD/YYYY)")
-    parser.add_argument("end_date", nargs="?", default=None, help="End date (format: MM/DD/YYYY)")
+    parser.add_argument("start_date", nargs="?", default=None, help="Start date (format: MM/DD/YYYY or MM/DD/YY))")
+    parser.add_argument("end_date", nargs="?", default=None, help="End date (format: MM/DD/YYYY or MM/DD/YY))")
     args = parser.parse_args()
+
+    args.start_date = convertToYYYY(args.start_date)
+    args.end_date = convertToYYYY(args.end_date)
 
     if args.start_date and args.end_date:
         print(f"Start date: {args.start_date}")
