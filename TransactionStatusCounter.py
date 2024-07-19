@@ -97,13 +97,20 @@ class MainWindow(QMainWindow):
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
 
+        # Initialize the dictionary we use to count the stats on the transactions.
+        self.transaction_counts = {
+            "successful_transaction_count": {"count": 0},
+            "failed_transaction_count": {"count": 0}
+        }
+
+        # Initialize the collection which will be filled with the results from the initial transaction.search() call.
+        self.initialCollection = None
+
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
         self.end_date = end_date
 
         if (self.start_date == None) and (self.end_date == None):
-            print(f"Do the default search")
-
             # Calculating todays date and the date 30 days before todays date.
             # This will be immediately passed into a transaction.search() when the file is run.
             # This is so that the user can immediately see the stats for their transactions in the last 30 days.
@@ -121,34 +128,18 @@ class MainWindow(QMainWindow):
             thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
             # Run the transaction.search() call with the dates we just created and store the results into an object.
-            initialCollection = self.gateway.transaction.search(
+            self.initialCollection = self.gateway.transaction.search(
               braintree.TransactionSearch.created_at.between(
                 thirtyDaysAgoFormatted,
                 todayDateFormatted
               )
             )
 
-            # Initialize the dictionary we use to count the stats on the transactions.
-            transaction_counts = {
-                "successful_transaction_count": {"count": 0},
-                "failed_transaction_count": {"count": 0}
-            }
-
-            # Go through the transactions we pulled in the search.
-            for transaction in initialCollection.items:
-                # If the transaction  has a successful status, add to the success count in the dictionary.
-                if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                    transaction_counts["successful_transaction_count"]["count"] += 1
-                # If the transaction  has a failed status, add to the fail count in the dictionary.
-                elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                    transaction_counts["failed_transaction_count"]["count"] += 1
-
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
-            self.countWidget = TransactionWidget(transaction_counts)
             
         else:
-            print(f"Use the arguments provided")
-
+            # In this case, the dates have been provided via command line arguments.
+            # They are provided as strings so we first convert them to datetime objects.
             startDate = datetime.strptime(self.start_date, "%m/%d/%Y")
             endDate = datetime.strptime(self.end_date, "%m/%d/%Y")
             endDate = endDate.replace(hour=23, minute=59, second=59)
@@ -156,26 +147,26 @@ class MainWindow(QMainWindow):
             print(f"Arg formatted startDate in MainWindow: {startDate}")
             print(f"Arg formatted endDate in MainWindow: {endDate}")
 
-            initialCollection = self.gateway.transaction.search(
+            # Then pass them into a transaction.search() call.
+            self.initialCollection = self.gateway.transaction.search(
               braintree.TransactionSearch.created_at.between(
                 startDate,
                 endDate
               )
             )
 
-            transaction_counts = {
-                "successful_transaction_count": {"count": 0},
-                "failed_transaction_count": {"count": 0}
-            }
-
-            for transaction in initialCollection.items:
-                if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                    transaction_counts["successful_transaction_count"]["count"] += 1
-                elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                    transaction_counts["failed_transaction_count"]["count"] += 1
-
             self.datesWidget = DateWidget(startDate, endDate)
-            self.countWidget = TransactionWidget(transaction_counts)
+
+        # Go through the transactions we pulled in the search.
+        for transaction in self.initialCollection.items:
+            # If the transaction  has a successful status, add to the success count in the dictionary.
+            if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
+                self.transaction_counts["successful_transaction_count"]["count"] += 1
+            # If the transaction  has a failed status, add to the fail count in the dictionary.
+            elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
+                self.transaction_counts["failed_transaction_count"]["count"] += 1
+
+        self.countWidget = TransactionWidget(self.transaction_counts)
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
