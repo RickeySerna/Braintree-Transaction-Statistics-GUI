@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
 
             self.datesWidget = DateWidget(startDate, endDate)
 
+            # We reset the self.dates variables back to None after we've done everything we need with them so that the calendar click functions properly.
+            self.start_date = None
+            self.end_date = None
+
         # Go through the transactions we pulled in the search.
         for transaction in self.initialCollection.items:
             # If the transaction  has a successful status, add to the success count in the dictionary.
