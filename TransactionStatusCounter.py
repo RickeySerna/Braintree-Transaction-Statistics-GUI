@@ -128,13 +128,14 @@ class MainWindow(QMainWindow):
             thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
             # Run the transaction.search() call with the dates we just created and store the results into an object.
-            self.initialCollection = self.gateway.transaction.search(
-              braintree.TransactionSearch.created_at.between(
-                thirtyDaysAgoFormatted,
-                todayDateFormatted
-              )
-            )
+##            self.initialCollection = self.gateway.transaction.search(
+##              braintree.TransactionSearch.created_at.between(
+##                thirtyDaysAgoFormatted,
+##                todayDateFormatted
+##              )
+##            )
 
+            self.transaction_search(thirtyDaysAgo, todayDate)
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
             
         else:
@@ -200,22 +201,29 @@ class MainWindow(QMainWindow):
 
             self.datesWidget.update_date_range(self.start_date, self.end_date)
             
-            self.new_transaction_search(self.start_date, self.end_date)
+            self.transaction_search(self.start_date, self.end_date)
 
             self.start_date = None
             self.end_date = None
         # This function allows the user to enter the same date twice, so the user can search a single date if they want.
         # TODO: Allow the start_date and end_date to be overwritten. So a new date range can be searched.
 
-    def new_transaction_search(self, startDate, endDate):
+    def transaction_search(self, startDate, endDate):
 
-        startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
-        endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
+        print(startDate)
+        print(endDate)
+
+        if isinstance(startDate, QDate):
+            startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
+            endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
+        else:
+            startDateFormatted = datetime(startDate.year, startDate.month, startDate.day)
+            endDateFormatted = datetime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
 
         print(f"New start date: {startDateFormatted}")
         print(f"New end date: {endDateFormatted}")
 
-        new_transaction_counts = {
+        transaction_counts = {
             "successful_transaction_count": {"count": 0},
             "failed_transaction_count": {"count": 0}
         }
@@ -231,15 +239,15 @@ class MainWindow(QMainWindow):
             # If the transaction  has a successful status, add to the success count in the dictionary.
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
                 print("Success transaction ID: " + transaction.id)
-                new_transaction_counts["successful_transaction_count"]["count"] += 1
+                transaction_counts["successful_transaction_count"]["count"] += 1
             # If the transaction  has a failed status, add to the fail count in the dictionary.
             elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
                 print("Failed transaction ID: " + transaction.id)
-                new_transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["failed_transaction_count"]["count"] += 1
 
-        print(new_transaction_counts)
+        print(transaction_counts)
 
-        self.update_widget_data(new_transaction_counts)
+        self.update_widget_data(transaction_counts)
 
 
     def update_widget_data(self, new_data):
