@@ -97,46 +97,35 @@ class MainWindow(QMainWindow):
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
 
-        # Initialize the dictionary we use to count the stats on the transactions.
-        self.transaction_counts = {
-            "successful_transaction_count": {"count": 0},
-            "failed_transaction_count": {"count": 0}
-        }
-
-        # Initialize the collection which will be filled with the results from the initial transaction.search() call.
-        self.initialCollection = None
+        # Initialize the layout immediately so that it doesn't error out when called in the search function.
+        # Also initialize the placeholder for the dates widget.
+        self.layout = QVBoxLayout()
+        self.datesWidget = None
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
         self.end_date = end_date
 
+        # UPDATE: Streamlined everything so that all of the transaction searching happens in transaction_search().
+        # Now in __init__(), we just calculate the search range, then pass it into the search function.
         if (self.start_date == None) and (self.end_date == None):
+            
             # Calculating todays date and the date 30 days before todays date.
             # This will be immediately passed into a transaction.search() when the file is run.
             # This is so that the user can immediately see the stats for their transactions in the last 30 days.
-            # If they want to search a new date range, they're free to do so with the calendar, but the
-            ## last 30 days' data is immediately and quickly supplied.
+            # If they want to search a new date range, they're free to do so with the calendar, but the last 30 days' data is immediately and quickly supplied.
 
-            # Tack on an extra day when calculating todays date because this method cuts the date time off at 00:00:00.
-            # So adding an extra day effectively makes it search the whole of todays date through midnight. (date = tomorrow at 00:00:... aka midnight of today)
+            # Grab todays date using date().
             todayDate = date.today()
             # Format todays date into the format accepted by the transaction.search() call.
             todayDateFormatted = datetime(todayDate.year, todayDate.month, todayDate.day, 23, 59, 59)
 
-            # Do the exact same thing to get 30 days ago's date, except take away 30 days instead of add 1.
+            # Do the exact same thing to get 30 days ago's date, except take away 30 days.
             thirtyDaysAgo = date.today() - timedelta(days=30)
             thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
-            # Run the transaction.search() call with the dates we just created and store the results into an object.
-##            self.initialCollection = self.gateway.transaction.search(
-##              braintree.TransactionSearch.created_at.between(
-##                thirtyDaysAgoFormatted,
-##                todayDateFormatted
-##              )
-##            )
-
-            self.transaction_search(thirtyDaysAgo, todayDate)
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
+            self.transaction_search(thirtyDaysAgo, todayDate)
             
         else:
             # In this case, the dates have been provided via command line arguments.
@@ -145,42 +134,16 @@ class MainWindow(QMainWindow):
             endDate = datetime.strptime(self.end_date, "%m/%d/%Y")
             endDate = endDate.replace(hour=23, minute=59, second=59)
 
-            print(f"Arg formatted startDate in MainWindow: {startDate}")
-            print(f"Arg formatted endDate in MainWindow: {endDate}")
-
-            # Then pass them into a transaction.search() call.
-            self.initialCollection = self.gateway.transaction.search(
-              braintree.TransactionSearch.created_at.between(
-                startDate,
-                endDate
-              )
-            )
-
-            self.datesWidget = DateWidget(startDate, endDate)
-
             # We reset the self.dates variables back to None after we've done everything we need with them so that the calendar click functions properly.
             self.start_date = None
             self.end_date = None
 
-        # Go through the transactions we pulled in the search.
-        for transaction in self.initialCollection.items:
-            # If the transaction  has a successful status, add to the success count in the dictionary.
-            if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
-                self.transaction_counts["successful_transaction_count"]["count"] += 1
-            # If the transaction  has a failed status, add to the fail count in the dictionary.
-            elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
-                self.transaction_counts["failed_transaction_count"]["count"] += 1
-
-        self.countWidget = TransactionWidget(self.transaction_counts)
+            self.datesWidget = DateWidget(startDate, endDate)
+            self.transaction_search(startDate, endDate)
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
         self.calendar.clicked.connect(self.handle_calendar_click)
-
-        self.layout = QVBoxLayout()
-        self.layout.addWidget(self.calendar)
-        self.layout.addWidget(self.datesWidget)
-        self.layout.addWidget(self.countWidget)
 
         widget = QWidget()
         widget.setLayout(self.layout)
@@ -188,25 +151,25 @@ class MainWindow(QMainWindow):
 
     # Changing this function up a bit.
     def handle_calendar_click(self, date):
+        # This function allows the user to enter the same date twice, so the user can search a single date if they want.
         # The start_date and end_date variables are initially set as None.
         # So first we check if start_date has a value.
         if not self.start_date:
             # If not, set it to whatever date was clicked.
-            self.start_date = date#datetime(date.year, date.month, date.day)
+            self.start_date = date
             print(f"Start date: {self.start_date}")
         else:
             # If it does, instead set the end_date to whatever date was clicked.
-            self.end_date = date#datetime(date.year, date.month, date.day)
+            self.end_date = date
             print(f"End date: {self.end_date}")
 
+            # Call the functions to change the widget data with the new dates the user just selected.
             self.datesWidget.update_date_range(self.start_date, self.end_date)
-            
             self.transaction_search(self.start_date, self.end_date)
 
+            # Reset them both to None so that the user can run a new search in the same window.
             self.start_date = None
             self.end_date = None
-        # This function allows the user to enter the same date twice, so the user can search a single date if they want.
-        # TODO: Allow the start_date and end_date to be overwritten. So a new date range can be searched.
 
     def transaction_search(self, startDate, endDate):
 
@@ -249,13 +212,17 @@ class MainWindow(QMainWindow):
 
         self.update_widget_data(transaction_counts)
 
-
+    # This function now controls all of the adding and removing of widgets.
     def update_widget_data(self, new_data):
+        # First we check if countWidget already exists, which would be the case if the user is running a new search after the initial one.
+        # If so, we delete it to be added again with the new search range's data.
         if hasattr(self, 'countWidget'):
             self.layout.removeWidget(self.countWidget)
             self.countWidget.deleteLater()
 
         self.countWidget = TransactionWidget(new_data)
+        self.layout.addWidget(self.calendar)
+        self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
 
 
