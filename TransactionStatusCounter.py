@@ -98,9 +98,7 @@ class MainWindow(QMainWindow):
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
 
         # Initialize the layout immediately so that it doesn't error out when called in the search function.
-        # Also initialize the placeholder for the dates widget.
         self.layout = QVBoxLayout()
-        self.datesWidget = None
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
@@ -172,10 +170,6 @@ class MainWindow(QMainWindow):
             self.end_date = None
 
     def transaction_search(self, startDate, endDate):
-
-        print(startDate)
-        print(endDate)
-
         if isinstance(startDate, QDate):
             startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
             endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
@@ -220,6 +214,9 @@ class MainWindow(QMainWindow):
             self.layout.removeWidget(self.countWidget)
             self.countWidget.deleteLater()
 
+        # Then we create and add the countWidget instance, whether it's the initial search or repeat searches.
+        # We also add the other widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
+        ## If it's a repeat search, PyQt sees that the other widgets already exist and so those other addWidget() calls are essentially ignored.
         self.countWidget = TransactionWidget(new_data)
         self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
