@@ -34,16 +34,26 @@ class TransactionWidget(QWidget):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
         
-        successful_count = transaction_data["successful_transaction_count"]["count"]
-        failed_count = transaction_data["failed_transaction_count"]["count"]
+        self.successful_count = transaction_data["successful_transaction_count"]["count"]
+        self.failed_count = transaction_data["failed_transaction_count"]["count"]
 
-        successful_transaction_count = QLabel(f"Successful transactions: {successful_count}")
-        failed_transaction_count = QLabel(f"Failed transactions: {failed_count}")
+        self.successful_transaction_count = QLabel(f"Successful transactions: {self.successful_count}")
+        self.failed_transaction_count = QLabel(f"Failed transactions: {self.failed_count}")
 
         layout = QVBoxLayout()
-        layout.addWidget(successful_transaction_count)
-        layout.addWidget(failed_transaction_count)
+        layout.addWidget(self.successful_transaction_count)
+        layout.addWidget(self.failed_transaction_count)
         self.setLayout(layout)
+
+    def update_transaction_data(self, updated_data):
+        print("Inside of update_transaction_data now")
+        print(updated_data)
+        self.successful_count = updated_data["successful_transaction_count"]["count"]
+        self.failed_count = updated_data["failed_transaction_count"]["count"]
+
+        self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_count}")
+        self.failed_transaction_count_label.setText(f"Failed transactions: {self.failed_count}")
+            
 
 class DateWidget(QWidget):
     def __init__(self, start_date, end_date):
@@ -211,9 +221,9 @@ class MainWindow(QMainWindow):
         # First we check if countWidget already exists, which would be the case if the user is running a new search after the initial one.
         # If so, we delete it to be added again with the new search range's data.
         if hasattr(self, 'countWidget'):
-            self.layout.removeWidget(self.countWidget)
-            self.countWidget.deleteLater()
-
+            print("calling update_transaction_data")
+            self.countWidget.update_transaction_data(new_data)
+            
         # Then we create and add the countWidget instance, whether it's the initial search or repeat searches.
         # We also add the other widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the other widgets already exist and so those other addWidget() calls are essentially ignored.
