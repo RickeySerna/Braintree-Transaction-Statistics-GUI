@@ -46,13 +46,13 @@ class TransactionWidget(QWidget):
         self.setLayout(layout)
 
     def update_transaction_data(self, updated_data):
-        print("Inside of update_transaction_data now")
-        print(updated_data)
+        print(f"New data: {updated_data}")
+        
         self.successful_count = updated_data["successful_transaction_count"]["count"]
         self.failed_count = updated_data["failed_transaction_count"]["count"]
 
-        self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_count}")
-        self.failed_transaction_count_label.setText(f"Failed transactions: {self.failed_count}")
+        self.successful_transaction_count.setText(f"Successful transactions: {self.successful_count}")
+        self.failed_transaction_count.setText(f"Failed transactions: {self.failed_count}")
             
 
 class DateWidget(QWidget):
@@ -220,14 +220,17 @@ class MainWindow(QMainWindow):
     def update_widget_data(self, new_data):
         # First we check if countWidget already exists, which would be the case if the user is running a new search after the initial one.
         # If so, we delete it to be added again with the new search range's data.
+        ## UPDATE: We are no longer deleting the widget for efficiency's sake. Instead, if the widget exists (i.e user started a new search), we just update the existing widget with the new data.
         if hasattr(self, 'countWidget'):
             print("calling update_transaction_data")
             self.countWidget.update_transaction_data(new_data)
+        else:
+            # Since we no longer destroy and re-create the widget, the widget is now only created when it doesn't already exist (which would only be the initial run).
+            self.countWidget = TransactionWidget(new_data)
             
         # Then we create and add the countWidget instance, whether it's the initial search or repeat searches.
         # We also add the other widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the other widgets already exist and so those other addWidget() calls are essentially ignored.
-        self.countWidget = TransactionWidget(new_data)
         self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
