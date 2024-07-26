@@ -18,17 +18,6 @@ from PyQt6.QtWidgets import (
     QCalendarWidget
 )
 
-
-class Color(QWidget):
-
-    def __init__(self, color):
-        super(Color, self).__init__()
-        self.setAutoFillBackground(True)
-
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(color))
-        self.setPalette(palette)
-
 class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
         super(TransactionWidget, self).__init__()
@@ -46,8 +35,6 @@ class TransactionWidget(QWidget):
         self.setLayout(layout)
 
     def update_transaction_data(self, updated_data):
-        print(f"New data: {updated_data}")
-        
         self.successful_count = updated_data["successful_transaction_count"]["count"]
         self.failed_count = updated_data["failed_transaction_count"]["count"]
 
@@ -93,6 +80,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("My App")
 
+        # Initialize the gateway
         self.gateway = braintree.BraintreeGateway(
           braintree.Configuration(
               braintree.Environment.Sandbox,
@@ -219,18 +207,15 @@ class MainWindow(QMainWindow):
     # This function now controls all of the adding and removing of widgets.
     def update_widget_data(self, new_data):
         # First we check if countWidget already exists, which would be the case if the user is running a new search after the initial one.
-        # If so, we delete it to be added again with the new search range's data.
-        ## UPDATE: We are no longer deleting the widget for efficiency's sake. Instead, if the widget exists (i.e user started a new search), we just update the existing widget with the new data.
+        # If so, call update_transaction_data which just updates the existing widget with the new data.
         if hasattr(self, 'countWidget'):
-            print("calling update_transaction_data")
             self.countWidget.update_transaction_data(new_data)
+        # If not, we create the widget with the data - the initial run.
         else:
-            # Since we no longer destroy and re-create the widget, the widget is now only created when it doesn't already exist (which would only be the initial run).
             self.countWidget = TransactionWidget(new_data)
             
-        # Then we create and add the countWidget instance, whether it's the initial search or repeat searches.
-        # We also add the other widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
-        ## If it's a repeat search, PyQt sees that the other widgets already exist and so those other addWidget() calls are essentially ignored.
+        # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
+        ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
         self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
@@ -253,13 +238,6 @@ def main():
 
     args.start_date = convertToYYYY(args.start_date)
     args.end_date = convertToYYYY(args.end_date)
-
-    if args.start_date and args.end_date:
-        print(f"Start date: {args.start_date}")
-        print(f"End date: {args.end_date}")
-    else:
-        print("Using default behavior (search within the last 30 days)")
-
 
     window = MainWindow(args.start_date, args.end_date)
     window.show()
