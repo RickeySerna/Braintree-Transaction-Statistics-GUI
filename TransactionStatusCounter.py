@@ -58,7 +58,6 @@ class DateWidget(QWidget):
         self.setLayout(layout)
 
     def update_date_range(self, start_date, end_date):
-        
         print(f"Start date inside update_date_range: {start_date}")
         print(f"End date inside update_date_range: {end_date}")
 
@@ -180,7 +179,17 @@ class MainWindow(QMainWindow):
 
         transaction_counts = {
             "successful_transaction_count": {"count": 0},
-            "failed_transaction_count": {"count": 0}
+            "failed_transaction_count": {"count": 0},
+            "declined_count": {"count": 0},
+            "rejected_count": {"count": 0},
+            "failed_count": {"count": 0},
+            "refunded_count": {"count": 0},
+            "total_refunded": {"count": 0},
+            "average_transaction_amount": {"count": 0},
+            "credit_card_txns": {"count": 0},
+            "apple_pay_txns": {"count": 0},
+            "google_pay_txns": {"count": 0},
+            "paypal_txns": {"count": 0}
         }
 
         newCollection = self.gateway.transaction.search(
@@ -195,10 +204,21 @@ class MainWindow(QMainWindow):
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
                 print("Success transaction ID: " + transaction.id)
                 transaction_counts["successful_transaction_count"]["count"] += 1
-            # If the transaction  has a failed status, add to the fail count in the dictionary.
-            elif transaction.status in ("processor_declined", "gateway_rejected", "failed"):
+            # Counting processor declined transactions.
+            elif transaction.status == "processor_declined":
                 print("Failed transaction ID: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["declined_count"]["count"] += 1
+            # Counting gateway rejected transactions.
+            elif transaction.status == "gateway_rejected":
+                print("Failed transaction ID: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["rejected_count"]["count"] += 1
+            # Any other failed txn type gets tossed into these buckets.
+            elif transaction.status in ("failed", "authorization_expired", "settlement_declined", "voided"):
+                print("Failed transaction ID: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["failed_count"]["count"] += 1
 
         print(transaction_counts)
 
