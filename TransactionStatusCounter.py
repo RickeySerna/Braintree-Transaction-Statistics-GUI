@@ -22,24 +22,55 @@ class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
-        
-        self.successful_count = transaction_data["successful_transaction_count"]["count"]
-        self.failed_count = transaction_data["failed_transaction_count"]["count"]
 
-        self.successful_transaction_count = QLabel(f"Successful transactions: {self.successful_count}")
-        self.failed_transaction_count = QLabel(f"Failed transactions: {self.failed_count}")
+        self.successful_transaction_count = transaction_data["successful_transaction_count"]["count"]
+        self.failed_transaction_count = transaction_data["failed_transaction_count"]["count"]
+        self.declined_count = transaction_data["declined_count"]["count"]
+        self.rejected_count = transaction_data["rejected_count"]["count"]
+        self.failed_count = transaction_data["failed_count"]["count"]
+        self.refunded_count = transaction_data["refunded_count"]["count"]
+        self.total_refunded = transaction_data["total_refunded"]["count"]
+        self.average_transaction_amount = transaction_data["average_transaction_amount"]["count"]
+        self.credit_card_txns = transaction_data["credit_card_txns"]["count"]
+        self.apple_pay_txns = transaction_data["apple_pay_txns"]["count"]
+        self.google_pay_txns = transaction_data["google_pay_txns"]["count"]
+        self.paypal_txns = transaction_data["paypal_txns"]["count"]
+
+        self.successful_transaction_count_label = QLabel(f"Successful transactions: {self.successful_transaction_count}")
+        self.failed_transaction_count_label = QLabel(f"Failed transactions: {self.failed_transaction_count}")
+        self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
+        self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
+        self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
+        self.refunded_count_label = QLabel(f"Refunded transactions: {self.refunded_count}")
+        self.total_refunded_label = QLabel(f"Total amount refunded: {self.total_refunded}")
+        self.average_transaction_amount_label = QLabel(f"Average transaction amount: {self.average_transaction_amount}")
+        self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
+        self.apple_pay_txns_label = QLabel(f"Apple Pay transactions: {self.apple_pay_txns}")
+        self.google_pay_txns_label = QLabel(f"Google Pay transactions: {self.google_pay_txns}")
+        self.paypal_txns_label = QLabel(f"PayPal transactions: {self.paypal_txns}") 
 
         layout = QVBoxLayout()
-        layout.addWidget(self.successful_transaction_count)
-        layout.addWidget(self.failed_transaction_count)
+        layout.addWidget(self.successful_transaction_count_label)
+        layout.addWidget(self.failed_transaction_count_label)
+        layout.addWidget(self.declined_count_label)
+        layout.addWidget(self.rejected_count_label)
+        layout.addWidget(self.failed_count_label)
+        layout.addWidget(self.refunded_count_label)
+        layout.addWidget(self.total_refunded_label)
+        layout.addWidget(self.average_transaction_amount_label)
+        layout.addWidget(self.credit_card_txns_label)
+        layout.addWidget(self.apple_pay_txns_label)
+        layout.addWidget(self.google_pay_txns_label)
+        layout.addWidget(self.paypal_txns_label)
+
         self.setLayout(layout)
 
     def update_transaction_data(self, updated_data):
-        self.successful_count = updated_data["successful_transaction_count"]["count"]
-        self.failed_count = updated_data["failed_transaction_count"]["count"]
+        self.successful_transaction_count = updated_data["successful_transaction_count"]["count"]
+        self.failed_transaction_count = updated_data["failed_transaction_count"]["count"]
 
-        self.successful_transaction_count.setText(f"Successful transactions: {self.successful_count}")
-        self.failed_transaction_count.setText(f"Failed transactions: {self.failed_count}")
+        self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_transaction_count}")
+        self.failed_transaction_count_label.setText(f"Failed transactions: {self.failed_transaction_count}")
             
 
 class DateWidget(QWidget):
