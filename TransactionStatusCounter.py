@@ -223,26 +223,26 @@ class MainWindow(QMainWindow):
             "paypal_txns": {"count": 0}
         }
 
-        newCollection = self.gateway.transaction.search(
+        collection = self.gateway.transaction.search(
           braintree.TransactionSearch.created_at.between(
             startDateFormatted,
             endDateFormatted
           )
         )
 
-        for transaction in newCollection.items:
+        for transaction in collection.items:
             # If the transaction  has a successful status, add to the success count in the dictionary.
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
                 print("Success transaction ID: " + transaction.id)
                 transaction_counts["successful_transaction_count"]["count"] += 1
             # Counting processor declined transactions.
             elif transaction.status == "processor_declined":
-                print("Failed transaction ID: " + transaction.id)
+                print("Processor Declined transaction ID: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
                 transaction_counts["declined_count"]["count"] += 1
             # Counting gateway rejected transactions.
             elif transaction.status == "gateway_rejected":
-                print("Failed transaction ID: " + transaction.id)
+                print("Gateway Rejected transaction ID: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
                 transaction_counts["rejected_count"]["count"] += 1
             # Any other failed txn type gets tossed into these buckets.
@@ -250,6 +250,12 @@ class MainWindow(QMainWindow):
                 print("Failed transaction ID: " + transaction.id)
                 transaction_counts["failed_transaction_count"]["count"] += 1
                 transaction_counts["failed_count"]["count"] += 1
+
+            if len(transaction.refund_ids) > 0:
+                print(f"Refund IDs: {transaction.refund_ids}")
+                transaction_counts["refunded_count"]["count"] += 1
+            else:
+                print("No refunds!")
 
         print(transaction_counts)
 
