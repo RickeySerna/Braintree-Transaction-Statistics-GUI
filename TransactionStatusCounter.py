@@ -37,12 +37,12 @@ class TransactionWidget(QWidget):
         self.paypal_txns = transaction_data["paypal_txns"]["count"]
 
         self.successful_transaction_count_label = QLabel(f"Successful transactions: {self.successful_transaction_count}")
-        self.failed_transaction_count_label = QLabel(f"Failed transactions: {self.failed_transaction_count}")
+        self.failed_transaction_count_label = QLabel(f"Total failed transactions: {self.failed_transaction_count}")
         self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
         self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
         self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
         self.refunded_count_label = QLabel(f"Refunded transactions: {self.refunded_count}")
-        self.total_refunded_label = QLabel(f"Total amount refunded: {self.total_refunded}")
+        self.total_refunded_label = QLabel(f"Total amount refunded: ${self.total_refunded}")
         self.average_transaction_amount_label = QLabel(f"Average transaction amount: {self.average_transaction_amount}")
         self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
         self.apple_pay_txns_label = QLabel(f"Apple Pay transactions: {self.apple_pay_txns}")
@@ -215,7 +215,7 @@ class MainWindow(QMainWindow):
             "rejected_count": {"count": 0},
             "failed_count": {"count": 0},
             "refunded_count": {"count": 0},
-            "total_refunded": {"count": 0},
+            "total_refunded": {"count": 0.00},
             "average_transaction_amount": {"count": 0},
             "credit_card_txns": {"count": 0},
             "apple_pay_txns": {"count": 0},
@@ -251,11 +251,20 @@ class MainWindow(QMainWindow):
                 transaction_counts["failed_transaction_count"]["count"] += 1
                 transaction_counts["failed_count"]["count"] += 1
 
+            # This is where we count the refund stats.
+            # This condition checks if the refund_ids array is populated, which would mean that the txn has been refunded.
             if len(transaction.refund_ids) > 0:
-                print(f"Refund IDs: {transaction.refund_ids}")
-                transaction_counts["refunded_count"]["count"] += 1
-            else:
-                print("No refunds!")
+                # Looping through the array.
+                for refunds in transaction.refund_ids:
+                    # For each refund in the array, we up the count of refunded_count by 1 to count the total number of refund.
+                    transaction_counts["refunded_count"]["count"] += 1
+
+                    # Then we pull the Transaction response object of the refund in question.
+                    refund = self.gateway.transaction.find(refunds)
+                    # And finally add the amount (converted to a float) to the total_refunded count.
+                    transaction_counts["total_refunded"]["count"] += float(refund.amount)
+
+            
 
         print(transaction_counts)
 
