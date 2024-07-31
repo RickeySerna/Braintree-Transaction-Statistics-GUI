@@ -68,9 +68,29 @@ class TransactionWidget(QWidget):
     def update_transaction_data(self, updated_data):
         self.successful_transaction_count = updated_data["successful_transaction_count"]["count"]
         self.failed_transaction_count = updated_data["failed_transaction_count"]["count"]
+        self.declined_count = updated_data["declined_count"]["count"]
+        self.rejected_count = updated_data["rejected_count"]["count"]
+        self.failed_count = updated_data["failed_count"]["count"]
+        self.refunded_count = updated_data["refunded_count"]["count"]
+        self.total_refunded = updated_data["total_refunded"]["count"]
+        self.average_transaction_amount = updated_data["average_transaction_amount"]["count"]
+        self.credit_card_txns = updated_data["credit_card_txns"]["count"]
+        self.apple_pay_txns = updated_data["apple_pay_txns"]["count"]
+        self.google_pay_txns = updated_data["google_pay_txns"]["count"]
+        self.paypal_txns = updated_data["paypal_txns"]["count"]
 
         self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_transaction_count}")
-        self.failed_transaction_count_label.setText(f"Failed transactions: {self.failed_transaction_count}")
+        self.failed_transaction_count_label.setText(f"Total failed transactions: {self.failed_transaction_count}")
+        self.declined_count_label.setText(f"Processor Declined transactions: {self.declined_count}")
+        self.rejected_count_label.setText(f"Gateway Rejected transactions: {self.rejected_count}")
+        self.failed_count_label.setText(f"Other transaction failures: {self.failed_count}")
+        self.refunded_count_label.setText(f"Refunded transactions: {self.refunded_count}")
+        self.total_refunded_label.setText(f"Total amount refunded: ${self.total_refunded}")
+        self.average_transaction_amount_label.setText(f"Average transaction amount: {self.average_transaction_amount}")
+        self.credit_card_txns_label.setText(f"Credit card transactions: {self.credit_card_txns}")
+        self.apple_pay_txns_label.setText(f"Apple Pay transactions: {self.apple_pay_txns}")
+        self.google_pay_txns_label.setText(f"Google Pay transactions: {self.google_pay_txns}")
+        self.paypal_txns_label.setText(f"PayPal transactions: {self.paypal_txns}") 
             
 
 class DateWidget(QWidget):
@@ -234,6 +254,7 @@ class MainWindow(QMainWindow):
             # If the transaction  has a successful status, add to the success count in the dictionary.
             if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
                 print("Success transaction ID: " + transaction.id)
+                print("Payment method: " + transaction.payment_instrument_type)
                 transaction_counts["successful_transaction_count"]["count"] += 1
             # Counting processor declined transactions.
             elif transaction.status == "processor_declined":
@@ -263,6 +284,16 @@ class MainWindow(QMainWindow):
                     refund = self.gateway.transaction.find(refunds)
                     # And finally add the amount (converted to a float) to the total_refunded count.
                     transaction_counts["total_refunded"]["count"] += float(refund.amount)
+
+            # This is where we count the payment methods used.
+            if (transaction.payment_instrument_type == "credit_card"):
+                transaction_counts["credit_card_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "apple_pay_card"):
+                transaction_counts["apple_pay_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "android_pay_card"):
+                transaction_counts["google_pay_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "paypal_account"):
+                transaction_counts["paypal_txns"]["count"] += 1
 
             
 
