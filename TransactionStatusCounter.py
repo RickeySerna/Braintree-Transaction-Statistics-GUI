@@ -43,7 +43,7 @@ class TransactionWidget(QWidget):
         self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
         self.refunded_count_label = QLabel(f"Refunded transactions: {self.refunded_count}")
         self.total_refunded_label = QLabel(f"Total amount refunded: ${self.total_refunded}")
-        self.average_transaction_amount_label = QLabel(f"Average transaction amount: {self.average_transaction_amount}")
+        self.average_transaction_amount_label = QLabel(f"Average transaction amount: ${self.average_transaction_amount}")
         self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
         self.apple_pay_txns_label = QLabel(f"Apple Pay transactions: {self.apple_pay_txns}")
         self.google_pay_txns_label = QLabel(f"Google Pay transactions: {self.google_pay_txns}")
@@ -86,7 +86,7 @@ class TransactionWidget(QWidget):
         self.failed_count_label.setText(f"Other transaction failures: {self.failed_count}")
         self.refunded_count_label.setText(f"Refunded transactions: {self.refunded_count}")
         self.total_refunded_label.setText(f"Total amount refunded: ${self.total_refunded}")
-        self.average_transaction_amount_label.setText(f"Average transaction amount: {self.average_transaction_amount}")
+        self.average_transaction_amount_label.setText(f"Average transaction amount: ${self.average_transaction_amount}")
         self.credit_card_txns_label.setText(f"Credit card transactions: {self.credit_card_txns}")
         self.apple_pay_txns_label.setText(f"Apple Pay transactions: {self.apple_pay_txns}")
         self.google_pay_txns_label.setText(f"Google Pay transactions: {self.google_pay_txns}")
@@ -236,12 +236,16 @@ class MainWindow(QMainWindow):
             "failed_count": {"count": 0},
             "refunded_count": {"count": 0},
             "total_refunded": {"count": 0.00},
-            "average_transaction_amount": {"count": 0},
+            "average_transaction_amount": {"count": 0.00},
             "credit_card_txns": {"count": 0},
             "apple_pay_txns": {"count": 0},
             "google_pay_txns": {"count": 0},
             "paypal_txns": {"count": 0}
         }
+
+        transaction_total_amount = 0.00
+        total_transactions = 0
+        transaction_average = 0.00
 
         collection = self.gateway.transaction.search(
           braintree.TransactionSearch.created_at.between(
@@ -285,6 +289,10 @@ class MainWindow(QMainWindow):
                     # And finally add the amount (converted to a float) to the total_refunded count.
                     transaction_counts["total_refunded"]["count"] += float(refund.amount)
 
+            if (transaction.refunded_transaction_id == None):
+                total_transactions += 1
+                transaction_total_amount += float(transaction.amount)
+
             # This is where we count the payment methods used.
             if (transaction.payment_instrument_type == "credit_card"):
                 transaction_counts["credit_card_txns"]["count"] += 1
@@ -295,7 +303,8 @@ class MainWindow(QMainWindow):
             elif (transaction.payment_instrument_type == "paypal_account"):
                 transaction_counts["paypal_txns"]["count"] += 1
 
-            
+        transaction_average = transaction_total_amount / total_transactions
+        transaction_counts["average_transaction_amount"]["count"] += transaction_average
 
         print(transaction_counts)
 
