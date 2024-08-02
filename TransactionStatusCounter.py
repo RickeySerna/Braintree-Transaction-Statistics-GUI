@@ -256,10 +256,13 @@ class MainWindow(QMainWindow):
 
         for transaction in collection.items:
             # If the transaction  has a successful status, add to the success count in the dictionary.
-            if transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled"):
+            ## We also count the total amount processed and total successful transactions here.
+            if (transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled")) and (transaction.refunded_transaction_id == None):
                 print("Success transaction ID: " + transaction.id)
                 print("Payment method: " + transaction.payment_instrument_type)
                 transaction_counts["successful_transaction_count"]["count"] += 1
+                total_transactions += 1
+                transaction_total_amount += float(transaction.amount)
             # Counting processor declined transactions.
             elif transaction.status == "processor_declined":
                 print("Processor Declined transaction ID: " + transaction.id)
@@ -289,10 +292,6 @@ class MainWindow(QMainWindow):
                     # And finally add the amount (converted to a float) to the total_refunded count.
                     transaction_counts["total_refunded"]["count"] += float(refund.amount)
 
-            if (transaction.refunded_transaction_id == None):
-                total_transactions += 1
-                transaction_total_amount += float(transaction.amount)
-
             # This is where we count the payment methods used.
             if (transaction.payment_instrument_type == "credit_card"):
                 transaction_counts["credit_card_txns"]["count"] += 1
@@ -303,6 +302,7 @@ class MainWindow(QMainWindow):
             elif (transaction.payment_instrument_type == "paypal_account"):
                 transaction_counts["paypal_txns"]["count"] += 1
 
+        # This is where we calculate the transaction average and add it to the dictionary.
         transaction_average = transaction_total_amount / total_transactions
         transaction_counts["average_transaction_amount"]["count"] += transaction_average
 
