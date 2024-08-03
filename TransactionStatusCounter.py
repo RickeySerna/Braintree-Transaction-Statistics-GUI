@@ -2,6 +2,7 @@ import braintree
 import datetime
 import sys
 import argparse
+import math
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QPalette, QColor
@@ -304,7 +305,10 @@ class MainWindow(QMainWindow):
 
         # This is where we calculate the transaction average and add it to the dictionary.
         transaction_average = transaction_total_amount / total_transactions
-        transaction_counts["average_transaction_amount"]["count"] += transaction_average
+        rounded_transaction_average = math.ceil(transaction_average * 100) / 100
+        print(f"Original value: {transaction_average}")
+        print(f"Rounded value: {rounded_transaction_average}")
+        transaction_counts["average_transaction_amount"]["count"] += rounded_transaction_average
 
         print(transaction_counts)
 
