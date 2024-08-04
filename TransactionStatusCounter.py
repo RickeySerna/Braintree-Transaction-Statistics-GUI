@@ -42,7 +42,7 @@ class TransactionWidget(QWidget):
         self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
         self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
         self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
-        self.refunded_count_label = QLabel(f"Refunded transactions: {self.refunded_count}")
+        self.refunded_count_label = QLabel(f"Total refunds: {self.refunded_count}")
         self.total_refunded_label = QLabel(f"Total amount refunded: ${self.total_refunded}")
         self.average_transaction_amount_label = QLabel(f"Average transaction amount: ${self.average_transaction_amount}")
         self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
@@ -85,7 +85,7 @@ class TransactionWidget(QWidget):
         self.declined_count_label.setText(f"Processor Declined transactions: {self.declined_count}")
         self.rejected_count_label.setText(f"Gateway Rejected transactions: {self.rejected_count}")
         self.failed_count_label.setText(f"Other transaction failures: {self.failed_count}")
-        self.refunded_count_label.setText(f"Refunded transactions: {self.refunded_count}")
+        self.refunded_count_label.setText(f"Total refunds: {self.refunded_count}")
         self.total_refunded_label.setText(f"Total amount refunded: ${self.total_refunded}")
         self.average_transaction_amount_label.setText(f"Average transaction amount: ${self.average_transaction_amount}")
         self.credit_card_txns_label.setText(f"Credit card transactions: {self.credit_card_txns}")
@@ -281,17 +281,12 @@ class MainWindow(QMainWindow):
                 transaction_counts["failed_count"]["count"] += 1
 
             # This is where we count the refund stats.
-            # This condition checks if the refund_ids array is populated, which would mean that the txn has been refunded.
-            if len(transaction.refund_ids) > 0:
-                # Looping through the array.
-                for refunds in transaction.refund_ids:
-                    # For each refund in the array, we up the count of refunded_count by 1 to count the total number of refund.
-                    transaction_counts["refunded_count"]["count"] += 1
-
-                    # Then we pull the Transaction response object of the refund in question.
-                    refund = self.gateway.transaction.find(refunds)
-                    # And finally add the amount (converted to a float) to the total_refunded count.
-                    transaction_counts["total_refunded"]["count"] += float(refund.amount)
+            ## UPDATE: Instead of searching for the refund IDs, now we just pull any refunds within this search range.
+            ## That would be the case if a refunded_transaction_id exists
+            if (transaction.refunded_transaction_id != None):
+                # If so, we just add 1 to the refund count and add the amount of the transaction to the total amount refunded count.
+                transaction_counts["refunded_count"]["count"] += 1
+                transaction_counts["total_refunded"]["count"] += float(transaction.amount)
 
             # This is where we count the payment methods used.
             if (transaction.payment_instrument_type == "credit_card"):
@@ -306,8 +301,6 @@ class MainWindow(QMainWindow):
         # This is where we calculate the transaction average and add it to the dictionary.
         transaction_average = transaction_total_amount / total_transactions
         rounded_transaction_average = math.ceil(transaction_average * 100) / 100
-        print(f"Original value: {transaction_average}")
-        print(f"Rounded value: {rounded_transaction_average}")
         transaction_counts["average_transaction_amount"]["count"] += rounded_transaction_average
 
         print(transaction_counts)
