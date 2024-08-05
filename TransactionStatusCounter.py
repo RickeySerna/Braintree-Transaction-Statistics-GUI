@@ -236,6 +236,7 @@ class MainWindow(QMainWindow):
             "rejected_count": {"count": 0},
             "failed_count": {"count": 0},
             "refunded_count": {"count": 0},
+            "transacted_amount": {"count": 0.00},
             "total_refunded": {"count": 0.00},
             "average_transaction_amount": {"count": 0.00},
             "credit_card_txns": {"count": 0},
@@ -244,8 +245,6 @@ class MainWindow(QMainWindow):
             "paypal_txns": {"count": 0}
         }
 
-        transaction_total_amount = 0.00
-        total_transactions = 0
         transaction_average = 0.00
 
         collection = self.gateway.transaction.search(
@@ -262,8 +261,7 @@ class MainWindow(QMainWindow):
                 print("Success transaction ID: " + transaction.id)
                 print("Payment method: " + transaction.payment_instrument_type)
                 transaction_counts["successful_transaction_count"]["count"] += 1
-                total_transactions += 1
-                transaction_total_amount += float(transaction.amount)
+                transaction_counts["transacted_amount"]["count"] += float(transaction.amount)
             # Counting processor declined transactions.
             elif transaction.status == "processor_declined":
                 print("Processor Declined transaction ID: " + transaction.id)
@@ -299,8 +297,8 @@ class MainWindow(QMainWindow):
                 transaction_counts["paypal_txns"]["count"] += 1
 
         # This is where we calculate the transaction average and add it to the dictionary.
-        transaction_average = transaction_total_amount / total_transactions
-        rounded_transaction_average = math.ceil(transaction_average * 100) / 100
+        transaction_average = transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"]
+        rounded_transaction_average = round(transaction_average, 2)
         transaction_counts["average_transaction_amount"]["count"] += rounded_transaction_average
 
         print(transaction_counts)
