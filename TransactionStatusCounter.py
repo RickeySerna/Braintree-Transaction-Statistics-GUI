@@ -25,6 +25,7 @@ class TransactionWidget(QWidget):
         self.setAutoFillBackground(True)
 
         self.successful_transaction_count = transaction_data["successful_transaction_count"]["count"]
+        self.transacted_amount_count = transaction_data["transacted_amount"]["count"]
         self.failed_transaction_count = transaction_data["failed_transaction_count"]["count"]
         self.declined_count = transaction_data["declined_count"]["count"]
         self.rejected_count = transaction_data["rejected_count"]["count"]
@@ -38,6 +39,7 @@ class TransactionWidget(QWidget):
         self.paypal_txns = transaction_data["paypal_txns"]["count"]
 
         self.successful_transaction_count_label = QLabel(f"Successful transactions: {self.successful_transaction_count}")
+        self.transacted_amount_count_label = QLabel(f"Total successfully transacted: ${self.transacted_amount_count}")
         self.failed_transaction_count_label = QLabel(f"Total failed transactions: {self.failed_transaction_count}")
         self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
         self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
@@ -52,6 +54,7 @@ class TransactionWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.successful_transaction_count_label)
+        layout.addWidget(self.transacted_amount_count_label)
         layout.addWidget(self.failed_transaction_count_label)
         layout.addWidget(self.declined_count_label)
         layout.addWidget(self.rejected_count_label)
@@ -68,6 +71,7 @@ class TransactionWidget(QWidget):
 
     def update_transaction_data(self, updated_data):
         self.successful_transaction_count = updated_data["successful_transaction_count"]["count"]
+        self.transacted_amount_count = updated_data["transacted_amount"]["count"]
         self.failed_transaction_count = updated_data["failed_transaction_count"]["count"]
         self.declined_count = updated_data["declined_count"]["count"]
         self.rejected_count = updated_data["rejected_count"]["count"]
@@ -81,6 +85,7 @@ class TransactionWidget(QWidget):
         self.paypal_txns = updated_data["paypal_txns"]["count"]
 
         self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_transaction_count}")
+        self.transacted_amount_count_label.setText(f"Total successfully transacted: ${self.transacted_amount_count}")
         self.failed_transaction_count_label.setText(f"Total failed transactions: {self.failed_transaction_count}")
         self.declined_count_label.setText(f"Processor Declined transactions: {self.declined_count}")
         self.rejected_count_label.setText(f"Gateway Rejected transactions: {self.rejected_count}")
