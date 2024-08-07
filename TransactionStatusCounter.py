@@ -38,65 +38,126 @@ class TransactionWidget(QWidget):
         self.google_pay_txns = transaction_data["google_pay_txns"]["count"]
         self.paypal_txns = transaction_data["paypal_txns"]["count"]
 
-        self.successful_transaction_count_label = QLabel(f"Successful transactions: {self.successful_transaction_count}")
-        self.transacted_amount_count_label = QLabel(f"Total successfully transacted: ${self.transacted_amount_count}")
-        self.failed_transaction_count_label = QLabel(f"Total failed transactions: {self.failed_transaction_count}")
-        self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
-        self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
-        self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
-        self.refunded_count_label = QLabel(f"Total refunds: {self.refunded_count}")
-        self.total_refunded_label = QLabel(f"Total amount refunded: ${self.total_refunded}")
-        self.average_transaction_amount_label = QLabel(f"Average transaction amount: ${self.average_transaction_amount}")
-        self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
-        self.apple_pay_txns_label = QLabel(f"Apple Pay transactions: {self.apple_pay_txns}")
-        self.google_pay_txns_label = QLabel(f"Google Pay transactions: {self.google_pay_txns}")
-        self.paypal_txns_label = QLabel(f"PayPal transactions: {self.paypal_txns}") 
+        self.transaction_stats = {
+            "successful_transaction_count": {
+                "label": QLabel(f"Successful transactions: {self.successful_transaction_count}"),
+                "count": self.successful_transaction_count
+            },
+            "transacted_amount": {
+                "label": QLabel(f"Total successfully transacted: ${self.transacted_amount_count}"),
+                "count": self.transacted_amount_count
+            },
+            "failed_transaction_count": {
+                "label": QLabel(f"Total failed transactions: {self.failed_transaction_count}"),
+                "count": self.failed_transaction_count
+            },
+            "declined_count": {
+                "label": QLabel(f"Processor Declined transactions: {self.declined_count}"),
+                "count": self.declined_count
+            },
+            "rejected_count": {
+                "label": QLabel(f"Gateway Rejected transactions: {self.rejected_count}"),
+                "count": self.rejected_count
+            },
+            "failed_count": {
+                "label": QLabel(f"Other transaction failures: {self.failed_count}"),
+                "count": self.failed_count
+            },
+            "refunded_count": {
+                "label": QLabel(f"Total refunds: {self.refunded_count}"),
+                "count": self.refunded_count
+            },
+            "total_refunded": {
+                "label": QLabel(f"Total amount refunded: {self.total_refunded}"),
+                "count": self.total_refunded
+            },
+            "average_transaction_amount": {
+                "label": QLabel(f"Average transaction amount: {self.average_transaction_amount}"),
+                "count": self.average_transaction_amount
+            },
+            "credit_card_txns": {
+                "label": QLabel(f"Credit card transactions: {self.credit_card_txns}"),
+                "count": self.credit_card_txns
+            },
+            "apple_pay_txns": {
+                "label": QLabel(f"Apple Pay transactions: {self.apple_pay_txns}"),
+                "count": self.apple_pay_txns
+            },
+            "google_pay_txns": {
+                "label": QLabel(f"Google Pay transactions: {self.google_pay_txns}"),
+                "count": self.google_pay_txns
+            },
+            "paypal_txns": {
+                "label": QLabel(f"PayPal transactions: {self.paypal_txns}"),
+                "count": self.paypal_txns
+            }
+        }
+
+##        self.successful_transaction_count_label = QLabel(f"Successful transactions: {self.successful_transaction_count}")
+##        self.transacted_amount_count_label = QLabel(f"Total successfully transacted: ${self.transacted_amount_count}")
+##        self.failed_transaction_count_label = QLabel(f"Total failed transactions: {self.failed_transaction_count}")
+##        self.declined_count_label = QLabel(f"Processor Declined transactions: {self.declined_count}")
+##        self.rejected_count_label = QLabel(f"Gateway Rejected transactions: {self.rejected_count}")
+##        self.failed_count_label = QLabel(f"Other transaction failures: {self.failed_count}")
+##        self.refunded_count_label = QLabel(f"Total refunds: {self.refunded_count}")
+##        self.total_refunded_label = QLabel(f"Total amount refunded: ${self.total_refunded}")
+##        self.average_transaction_amount_label = QLabel(f"Average transaction amount: ${self.average_transaction_amount}")
+##        self.credit_card_txns_label = QLabel(f"Credit card transactions: {self.credit_card_txns}")
+##        self.apple_pay_txns_label = QLabel(f"Apple Pay transactions: {self.apple_pay_txns}")
+##        self.google_pay_txns_label = QLabel(f"Google Pay transactions: {self.google_pay_txns}")
+##        self.paypal_txns_label = QLabel(f"PayPal transactions: {self.paypal_txns}")
 
         layout = QVBoxLayout()
-        layout.addWidget(self.successful_transaction_count_label)
-        layout.addWidget(self.transacted_amount_count_label)
-        layout.addWidget(self.failed_transaction_count_label)
-        layout.addWidget(self.declined_count_label)
-        layout.addWidget(self.rejected_count_label)
-        layout.addWidget(self.failed_count_label)
-        layout.addWidget(self.refunded_count_label)
-        layout.addWidget(self.total_refunded_label)
-        layout.addWidget(self.average_transaction_amount_label)
-        layout.addWidget(self.credit_card_txns_label)
-        layout.addWidget(self.apple_pay_txns_label)
-        layout.addWidget(self.google_pay_txns_label)
-        layout.addWidget(self.paypal_txns_label)
+##        layout.addWidget(self.successful_transaction_count_label)
+##        layout.addWidget(self.transacted_amount_count_label)
+##        layout.addWidget(self.failed_transaction_count_label)
+##        layout.addWidget(self.declined_count_label)
+##        layout.addWidget(self.rejected_count_label)
+##        layout.addWidget(self.failed_count_label)
+##        layout.addWidget(self.refunded_count_label)
+##        layout.addWidget(self.total_refunded_label)
+##        layout.addWidget(self.average_transaction_amount_label)
+##        layout.addWidget(self.credit_card_txns_label)
+##        layout.addWidget(self.apple_pay_txns_label)
+##        layout.addWidget(self.google_pay_txns_label)
+##        layout.addWidget(self.paypal_txns_label)
+
+        for key, value in self.transaction_stats.items():
+            layout.addWidget(value["label"])
 
         self.setLayout(layout)
 
     def update_transaction_data(self, updated_data):
-        self.successful_transaction_count = updated_data["successful_transaction_count"]["count"]
-        self.transacted_amount_count = updated_data["transacted_amount"]["count"]
-        self.failed_transaction_count = updated_data["failed_transaction_count"]["count"]
-        self.declined_count = updated_data["declined_count"]["count"]
-        self.rejected_count = updated_data["rejected_count"]["count"]
-        self.failed_count = updated_data["failed_count"]["count"]
-        self.refunded_count = updated_data["refunded_count"]["count"]
-        self.total_refunded = updated_data["total_refunded"]["count"]
-        self.average_transaction_amount = updated_data["average_transaction_amount"]["count"]
-        self.credit_card_txns = updated_data["credit_card_txns"]["count"]
-        self.apple_pay_txns = updated_data["apple_pay_txns"]["count"]
-        self.google_pay_txns = updated_data["google_pay_txns"]["count"]
-        self.paypal_txns = updated_data["paypal_txns"]["count"]
-
-        self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_transaction_count}")
-        self.transacted_amount_count_label.setText(f"Total successfully transacted: ${self.transacted_amount_count}")
-        self.failed_transaction_count_label.setText(f"Total failed transactions: {self.failed_transaction_count}")
-        self.declined_count_label.setText(f"Processor Declined transactions: {self.declined_count}")
-        self.rejected_count_label.setText(f"Gateway Rejected transactions: {self.rejected_count}")
-        self.failed_count_label.setText(f"Other transaction failures: {self.failed_count}")
-        self.refunded_count_label.setText(f"Total refunds: {self.refunded_count}")
-        self.total_refunded_label.setText(f"Total amount refunded: ${self.total_refunded}")
-        self.average_transaction_amount_label.setText(f"Average transaction amount: ${self.average_transaction_amount}")
-        self.credit_card_txns_label.setText(f"Credit card transactions: {self.credit_card_txns}")
-        self.apple_pay_txns_label.setText(f"Apple Pay transactions: {self.apple_pay_txns}")
-        self.google_pay_txns_label.setText(f"Google Pay transactions: {self.google_pay_txns}")
-        self.paypal_txns_label.setText(f"PayPal transactions: {self.paypal_txns}") 
+##        self.successful_transaction_count = updated_data["successful_transaction_count"]["count"]
+##        self.transacted_amount_count = updated_data["transacted_amount"]["count"]
+##        self.failed_transaction_count = updated_data["failed_transaction_count"]["count"]
+##        self.declined_count = updated_data["declined_count"]["count"]
+##        self.rejected_count = updated_data["rejected_count"]["count"]
+##        self.failed_count = updated_data["failed_count"]["count"]
+##        self.refunded_count = updated_data["refunded_count"]["count"]
+##        self.total_refunded = updated_data["total_refunded"]["count"]
+##        self.average_transaction_amount = updated_data["average_transaction_amount"]["count"]
+##        self.credit_card_txns = updated_data["credit_card_txns"]["count"]
+##        self.apple_pay_txns = updated_data["apple_pay_txns"]["count"]
+##        self.google_pay_txns = updated_data["google_pay_txns"]["count"]
+##        self.paypal_txns = updated_data["paypal_txns"]["count"]
+##
+##        self.successful_transaction_count_label.setText(f"Successful transactions: {self.successful_transaction_count}")
+##        self.transacted_amount_count_label.setText(f"Total successfully transacted: ${self.transacted_amount_count}")
+##        self.failed_transaction_count_label.setText(f"Total failed transactions: {self.failed_transaction_count}")
+##        self.declined_count_label.setText(f"Processor Declined transactions: {self.declined_count}")
+##        self.rejected_count_label.setText(f"Gateway Rejected transactions: {self.rejected_count}")
+##        self.failed_count_label.setText(f"Other transaction failures: {self.failed_count}")
+##        self.refunded_count_label.setText(f"Total refunds: {self.refunded_count}")
+##        self.total_refunded_label.setText(f"Total amount refunded: ${self.total_refunded}")
+##        self.average_transaction_amount_label.setText(f"Average transaction amount: ${self.average_transaction_amount}")
+##        self.credit_card_txns_label.setText(f"Credit card transactions: {self.credit_card_txns}")
+##        self.apple_pay_txns_label.setText(f"Apple Pay transactions: {self.apple_pay_txns}")
+##        self.google_pay_txns_label.setText(f"Google Pay transactions: {self.google_pay_txns}")
+##        self.paypal_txns_label.setText(f"PayPal transactions: {self.paypal_txns}")
+        for key, value in self.transaction_stats.items():
+            value["count"] = updated_data[key]["count"]
+            value["label"].setText(f"{key.replace('_', ' ').title()}: {value['count']}")
             
 
 class DateWidget(QWidget):
