@@ -68,11 +68,11 @@ class TransactionWidget(QWidget):
                 "count": self.refunded_count
             },
             "total_refunded": {
-                "label": QLabel(f"Total amount refunded: {self.total_refunded}"),
+                "label": QLabel(f"Total amount refunded: ${self.total_refunded}"),
                 "count": self.total_refunded
             },
             "average_transaction_amount": {
-                "label": QLabel(f"Average transaction amount: {self.average_transaction_amount}"),
+                "label": QLabel(f"Average transaction amount: ${self.average_transaction_amount}"),
                 "count": self.average_transaction_amount
             },
             "credit_card_txns": {
@@ -363,9 +363,10 @@ class MainWindow(QMainWindow):
                 transaction_counts["paypal_txns"]["count"] += 1
 
         # This is where we calculate the transaction average and add it to the dictionary.
-        transaction_average = transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"]
-        rounded_transaction_average = round(transaction_average, 2)
-        transaction_counts["average_transaction_amount"]["count"] += rounded_transaction_average
+        transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
+        transaction_counts["average_transaction_amount"]["count"] += transaction_average
+        # Also cutting the total amount transacted to the hundredths place.
+        transaction_counts["transacted_amount"]["count"] = round(transaction_counts["transacted_amount"]["count"], 2)
 
         print(transaction_counts)
 
