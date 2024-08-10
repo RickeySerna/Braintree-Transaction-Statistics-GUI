@@ -53,15 +53,15 @@ class TransactionWidget(QWidget):
                 "count": self.failed_transaction_count
             },
             "declined_count": {
-                "label": QLabel(f"Processor Declined transactions: {self.declined_count}"),
+                "label": QLabel(f" - Processor Declined transactions: {self.declined_count}"),
                 "count": self.declined_count
             },
             "rejected_count": {
-                "label": QLabel(f"Gateway Rejected transactions: {self.rejected_count}"),
+                "label": QLabel(f" - Gateway Rejected transactions: {self.rejected_count}"),
                 "count": self.rejected_count
             },
             "failed_count": {
-                "label": QLabel(f"Other transaction failures: {self.failed_count}"),
+                "label": QLabel(f" - Other transaction failures: {self.failed_count}"),
                 "count": self.failed_count
             },
             "refunded_count": {
@@ -314,9 +314,11 @@ class MainWindow(QMainWindow):
 
         # This is where we calculate the transaction average and add it to the dictionary.
         transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
-        transaction_counts["average_transaction_amount"]["count"] += transaction_average
+        # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
+        transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
         # Also cutting the total amount transacted to the hundredths place.
-        transaction_counts["transacted_amount"]["count"] = round(transaction_counts["transacted_amount"]["count"], 2)
+        transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
+        transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
 
         print(transaction_counts)
 
