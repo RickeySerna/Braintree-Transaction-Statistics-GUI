@@ -313,9 +313,16 @@ class MainWindow(QMainWindow):
                 transaction_counts["paypal_txns"]["count"] += 1
 
         # This is where we calculate the transaction average and add it to the dictionary.
-        transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
+        # UPDATE: Adding a check here to see if the successful txn count is 0.
+        # If it is, we just define transaction_average as 0 to avoid any divide by 0 errors.
+        if (transaction_counts["successful_transaction_count"]["count"] != 0):
+            transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
+        else:
+            transaction_average = 0
+        
         # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
         transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
+        
         # Also cutting the total amount transacted to the hundredths place.
         transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
         transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
