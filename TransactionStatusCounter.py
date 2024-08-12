@@ -7,6 +7,7 @@ import re
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QPalette, QColor
+from PyQtWaitingSpinner import QtWaitingSpinner
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -157,6 +158,17 @@ class MainWindow(QMainWindow):
           )
         )
 
+        self.spinner = QtWaitingSpinner(self, centerOnParent=True, disableParentWhenSpinning=True)
+        self.spinner.setRoundness(70.0)
+        self.spinner.setMinimumTrailOpacity(15.0)
+        self.spinner.setTrailFadePercentage(70.0)
+        self.spinner.setNumberOfLines(12)
+        self.spinner.setLineLength(10)
+        self.spinner.setLineWidth(5)
+        self.spinner.setInnerRadius(10)
+        self.spinner.setRevolutionsPerSecond(1)
+        self.spinner.setColor(Qt.GlobalColor.black)
+
         # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
@@ -235,6 +247,9 @@ class MainWindow(QMainWindow):
             self.end_date = None
 
     def transaction_search(self, startDate, endDate):
+        
+        self.spinner.start()
+        
         if isinstance(startDate, QDate):
             startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
             endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
@@ -329,6 +344,8 @@ class MainWindow(QMainWindow):
 
         print(transaction_counts)
 
+        self.spinner.stop()
+        
         self.update_widget_data(transaction_counts)
 
     # This function now controls all of the adding and removing of widgets.
