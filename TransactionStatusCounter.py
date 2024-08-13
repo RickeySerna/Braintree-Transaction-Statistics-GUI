@@ -7,7 +7,6 @@ import re
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QPalette, QColor
-from PyQtWaitingSpinner import QtWaitingSpinner
 from PyQt6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -20,6 +19,7 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QCalendarWidget
 )
+from pyqtspinner.spinner import WaitingSpinner
 
 class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
@@ -158,17 +158,6 @@ class MainWindow(QMainWindow):
           )
         )
 
-        self.spinner = QtWaitingSpinner(self, centerOnParent=True, disableParentWhenSpinning=True)
-        self.spinner.setRoundness(70.0)
-        self.spinner.setMinimumTrailOpacity(15.0)
-        self.spinner.setTrailFadePercentage(70.0)
-        self.spinner.setNumberOfLines(12)
-        self.spinner.setLineLength(10)
-        self.spinner.setLineWidth(5)
-        self.spinner.setInnerRadius(10)
-        self.spinner.setRevolutionsPerSecond(1)
-        self.spinner.setColor(Qt.GlobalColor.black)
-
         # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
@@ -176,6 +165,18 @@ class MainWindow(QMainWindow):
 
         # Initialize the layout immediately so that it doesn't error out when called in the search function.
         self.layout = QVBoxLayout()
+
+##        self.central_widget = QWidget(self)
+##        self.setCentralWidget(self.central_widget)
+##        self.layout = QVBoxLayout(self.central_widget)
+##
+##        self.spinner_container = QWidget(self.central_widget)
+##        self.spinner_layout = QVBoxLayout(self.spinner_container)
+##        
+##        # Explicitly set the parent widget type
+##        self.spinner = WaitingSpinner(self.spinner_container)
+##        self.spinner_layout.addWidget(self.spinner)
+##        self.layout.addWidget(self.spinner_container)
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
@@ -248,7 +249,7 @@ class MainWindow(QMainWindow):
 
     def transaction_search(self, startDate, endDate):
         
-        self.spinner.start()
+        #self.spinner.start()
         
         if isinstance(startDate, QDate):
             startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
@@ -344,7 +345,7 @@ class MainWindow(QMainWindow):
 
         print(transaction_counts)
 
-        self.spinner.stop()
+        #self.spinner.stop()
         
         self.update_widget_data(transaction_counts)
 
