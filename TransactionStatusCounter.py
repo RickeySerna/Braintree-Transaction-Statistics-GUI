@@ -99,9 +99,6 @@ class TransactionWidget(QWidget):
         for key, value in self.transaction_stats.items():
             self.layout.addWidget(value["label"])
 
-        self.waiting_label = QLabel("")
-        self.layout.addWidget(self.waiting_label)
-
         self.setLayout(self.layout)
 
     def update_transaction_data(self, updated_data):
@@ -114,7 +111,9 @@ class TransactionWidget(QWidget):
                 value["label"].setText(f"{initial_text}{value['count']}")
 
     def waiting_message(self):
-        self.waiting_label.setText("Gathering new data...")
+        self.waiting_label = QLabel("Gathering new data...")
+        self.layout.addWidget(self.waiting_label)
+        
         
 
 class DateWidget(QWidget):
@@ -235,6 +234,8 @@ class MainWindow(QMainWindow):
 
             # Call the functions to change the widget data with the new dates the user just selected.
             self.datesWidget.update_date_range(self.start_date, self.end_date)
+            #if hasattr(self, 'countWidget'):
+            self.countWidget.waiting_message()
             self.transaction_search(self.start_date, self.end_date)
 
             # Reset them both to None so that the user can run a new search in the same window.
