@@ -4,10 +4,8 @@ import sys
 import argparse
 import math
 import re
-import asyncio
-from qasync import QEventLoop, asyncSlot
 from datetime import date, datetime, timedelta
-from PyQt6.QtCore import QDate, Qt
+from PyQt6.QtCore import QDate, Qt, QTimer
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication,
@@ -221,134 +219,136 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     # Changing this function up a bit.
-    @asyncSlot()
-    async def handle_calendar_click(self, date):
-        try:
-            # This function allows the user to enter the same date twice, so the user can search a single date if they want.
-            # The start_date and end_date variables are initially set as None.
-            # So first we check if start_date has a value.
-            if not self.start_date:
-                # If not, set it to whatever date was clicked.
-                self.start_date = date
-                print(f"Start date: {self.start_date}")
-            else:
-                # If it does, instead set the end_date to whatever date was clicked.
-                self.end_date = date
-                print(f"End date: {self.end_date}")
+    def handle_calendar_click(self, date):
+        # This function allows the user to enter the same date twice, so the user can search a single date if they want.
+        # The start_date and end_date variables are initially set as None.
+        # So first we check if start_date has a value.
+        if not self.start_date:
+            # If not, set it to whatever date was clicked.
+            self.start_date = date
+            print(f"Start date: {self.start_date}")
+        else:
+            # If it does, instead set the end_date to whatever date was clicked.
+            self.end_date = date
+            print(f"End date: {self.end_date}")
 
-                # Call the functions to change the widget data with the new dates the user just selected.
-                self.datesWidget.update_date_range(self.start_date, self.end_date)
-                if hasattr(self, 'countWidget'):
-                    self.countWidget.waiting_message()
-                await self.transaction_search(self.start_date, self.end_date)
+            # Call the functions to change the widget data with the new dates the user just selected.
+            self.datesWidget.update_date_range(self.start_date, self.end_date)
+            if hasattr(self, 'countWidget'):
+                print("callig waiting message")
+                self.countWidget.waiting_message()
+                
+            # Force the GUI to update
+            print("Calling QApplication.processEvents()")
+            QApplication.processEvents()
 
-                # Reset them both to None so that the user can run a new search in the same window.
-                self.start_date = None
-                self.end_date = None
-        except Exception as e:
-            print(f"Error in handle_calendar_click: {e}")
+            try:
+                # Use QTimer to delay the transaction search slightly
+                print("Setting QTimer.singleShot")
+                QTimer.singleShot(100, lambda: self.transaction_search(self.start_date, self.end_date))
+            except Exception as e:
+                print(f"Error during transaction search: {e}")
 
-    @asyncSlot()
-    async def transaction_search(self, start_date, end_date):
-        try:
-            if isinstance(startDate, QDate):
-                startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
-                endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
-            else:
-                startDateFormatted = datetime(startDate.year, startDate.month, startDate.day)
-                endDateFormatted = datetime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
+            # Reset them both to None so that the user can run a new search in the same window.
+            self.start_date = None
+            self.end_date = None
 
-            print(f"New start date: {startDateFormatted}")
-            print(f"New end date: {endDateFormatted}")
+    def transaction_search(self, startDate, endDate):        
+        if isinstance(startDate, QDate):
+            startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
+            endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
+        else:
+            startDateFormatted = datetime(startDate.year, startDate.month, startDate.day)
+            endDateFormatted = datetime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
 
-            transaction_counts = {
-                "successful_transaction_count": {"count": 0},
-                "failed_transaction_count": {"count": 0},
-                "declined_count": {"count": 0},
-                "rejected_count": {"count": 0},
-                "failed_count": {"count": 0},
-                "refunded_count": {"count": 0},
-                "transacted_amount": {"count": 0.00},
-                "total_refunded": {"count": 0.00},
-                "average_transaction_amount": {"count": 0.00},
-                "credit_card_txns": {"count": 0},
-                "apple_pay_txns": {"count": 0},
-                "google_pay_txns": {"count": 0},
-                "paypal_txns": {"count": 0}
-            }
+        print(f"New start date: {startDateFormatted}")
+        print(f"New end date: {endDateFormatted}")
 
-            transaction_average = 0.00
+        transaction_counts = {
+            "successful_transaction_count": {"count": 0},
+            "failed_transaction_count": {"count": 0},
+            "declined_count": {"count": 0},
+            "rejected_count": {"count": 0},
+            "failed_count": {"count": 0},
+            "refunded_count": {"count": 0},
+            "transacted_amount": {"count": 0.00},
+            "total_refunded": {"count": 0.00},
+            "average_transaction_amount": {"count": 0.00},
+            "credit_card_txns": {"count": 0},
+            "apple_pay_txns": {"count": 0},
+            "google_pay_txns": {"count": 0},
+            "paypal_txns": {"count": 0}
+        }
 
-            collection = self.gateway.transaction.search(
-              braintree.TransactionSearch.created_at.between(
-                startDateFormatted,
-                endDateFormatted
-              )
-            )
+        transaction_average = 0.00
 
-            for transaction in collection.items:
-                # If the transaction  has a successful status, add to the success count in the dictionary.
-                ## We also count the total amount processed and total successful transactions here.
-                if (transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled")) and (transaction.refunded_transaction_id == None):
-                    print("Success transaction ID: " + transaction.id)
-                    print("Payment method: " + transaction.payment_instrument_type)
-                    transaction_counts["successful_transaction_count"]["count"] += 1
-                    transaction_counts["transacted_amount"]["count"] += float(transaction.amount)
-                # Counting processor declined transactions.
-                elif transaction.status == "processor_declined":
-                    print("Processor Declined transaction ID: " + transaction.id)
-                    transaction_counts["failed_transaction_count"]["count"] += 1
-                    transaction_counts["declined_count"]["count"] += 1
-                # Counting gateway rejected transactions.
-                elif transaction.status == "gateway_rejected":
-                    print("Gateway Rejected transaction ID: " + transaction.id)
-                    transaction_counts["failed_transaction_count"]["count"] += 1
-                    transaction_counts["rejected_count"]["count"] += 1
-                # Any other failed txn type gets tossed into these buckets.
-                elif transaction.status in ("failed", "authorization_expired", "settlement_declined", "voided"):
-                    print("Failed transaction ID: " + transaction.id)
-                    transaction_counts["failed_transaction_count"]["count"] += 1
-                    transaction_counts["failed_count"]["count"] += 1
+        collection = self.gateway.transaction.search(
+          braintree.TransactionSearch.created_at.between(
+            startDateFormatted,
+            endDateFormatted
+          )
+        )
 
-                # This is where we count the refund stats.
-                ## UPDATE: Instead of searching for the refund IDs, now we just pull any refunds within this search range.
-                ## That would be the case if a refunded_transaction_id exists
-                if (transaction.refunded_transaction_id != None):
-                    # If so, we just add 1 to the refund count and add the amount of the transaction to the total amount refunded count.
-                    transaction_counts["refunded_count"]["count"] += 1
-                    transaction_counts["total_refunded"]["count"] += float(transaction.amount)
+        for transaction in collection.items:
+            # If the transaction  has a successful status, add to the success count in the dictionary.
+            ## We also count the total amount processed and total successful transactions here.
+            if (transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled")) and (transaction.refunded_transaction_id == None):
+                print("Success transaction ID: " + transaction.id)
+                print("Payment method: " + transaction.payment_instrument_type)
+                transaction_counts["successful_transaction_count"]["count"] += 1
+                transaction_counts["transacted_amount"]["count"] += float(transaction.amount)
+            # Counting processor declined transactions.
+            elif transaction.status == "processor_declined":
+                print("Processor Declined transaction ID: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["declined_count"]["count"] += 1
+            # Counting gateway rejected transactions.
+            elif transaction.status == "gateway_rejected":
+                print("Gateway Rejected transaction ID: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["rejected_count"]["count"] += 1
+            # Any other failed txn type gets tossed into these buckets.
+            elif transaction.status in ("failed", "authorization_expired", "settlement_declined", "voided"):
+                print("Failed transaction ID: " + transaction.id)
+                transaction_counts["failed_transaction_count"]["count"] += 1
+                transaction_counts["failed_count"]["count"] += 1
 
-                # This is where we count the payment methods used.
-                if (transaction.payment_instrument_type == "credit_card"):
-                    transaction_counts["credit_card_txns"]["count"] += 1
-                elif (transaction.payment_instrument_type == "apple_pay_card"):
-                    transaction_counts["apple_pay_txns"]["count"] += 1
-                elif (transaction.payment_instrument_type == "android_pay_card"):
-                    transaction_counts["google_pay_txns"]["count"] += 1
-                elif (transaction.payment_instrument_type == "paypal_account"):
-                    transaction_counts["paypal_txns"]["count"] += 1
+            # This is where we count the refund stats.
+            ## UPDATE: Instead of searching for the refund IDs, now we just pull any refunds within this search range.
+            ## That would be the case if a refunded_transaction_id exists
+            if (transaction.refunded_transaction_id != None):
+                # If so, we just add 1 to the refund count and add the amount of the transaction to the total amount refunded count.
+                transaction_counts["refunded_count"]["count"] += 1
+                transaction_counts["total_refunded"]["count"] += float(transaction.amount)
 
-            # This is where we calculate the transaction average and add it to the dictionary.
-            # UPDATE: Adding a check here to see if the successful txn count is 0.
-            # If it is, we just define transaction_average as 0 to avoid any divide by 0 errors.
-            if (transaction_counts["successful_transaction_count"]["count"] != 0):
-                transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
-            else:
-                transaction_average = 0
-            
-            # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
-            transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
-            
-            # Also cutting the total amount transacted to the hundredths place.
-            transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
-            transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
+            # This is where we count the payment methods used.
+            if (transaction.payment_instrument_type == "credit_card"):
+                transaction_counts["credit_card_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "apple_pay_card"):
+                transaction_counts["apple_pay_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "android_pay_card"):
+                transaction_counts["google_pay_txns"]["count"] += 1
+            elif (transaction.payment_instrument_type == "paypal_account"):
+                transaction_counts["paypal_txns"]["count"] += 1
 
-            print(transaction_counts)
-            
-            self.update_widget_data(transaction_counts)
-            pass
-        except Exception as e:
-            print(f"Error in transaction_search: {e}")
+        # This is where we calculate the transaction average and add it to the dictionary.
+        # UPDATE: Adding a check here to see if the successful txn count is 0.
+        # If it is, we just define transaction_average as 0 to avoid any divide by 0 errors.
+        if (transaction_counts["successful_transaction_count"]["count"] != 0):
+            transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
+        else:
+            transaction_average = 0
+        
+        # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
+        transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
+        
+        # Also cutting the total amount transacted to the hundredths place.
+        transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
+        transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
+
+        print(transaction_counts)
+        
+        self.update_widget_data(transaction_counts)
 
     # This function now controls all of the adding and removing of widgets.
     def update_widget_data(self, new_data):
@@ -376,8 +376,6 @@ def convertToYYYY(date):
 
 def main():
     app = QApplication(sys.argv)
-    loop = QEventLoop(app)
-    asyncio.set_event_loop(loop)
 
     parser = argparse.ArgumentParser(description="Transaction search")
     parser.add_argument("start_date", nargs="?", default=None, help="Start date (format: MM/DD/YYYY or MM/DD/YY))")
@@ -389,9 +387,6 @@ def main():
 
     window = MainWindow(args.start_date, args.end_date)
     window.show()
-
-    with loop:
-        loop.run_forever()
 
     sys.exit(app.exec())
 
