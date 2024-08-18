@@ -242,6 +242,9 @@ class MainWindow(QMainWindow):
             print("Calling QApplication.processEvents()")
             QApplication.processEvents()
 
+            print(f"Start date passed into transaction_search: {self.start_date}")
+            print(f"End date passed into transaction_search: {self.end_date}")
+
             try:
                 # Use QTimer to delay the transaction search slightly
                 print("Setting QTimer.singleShot")
@@ -253,102 +256,108 @@ class MainWindow(QMainWindow):
             self.start_date = None
             self.end_date = None
 
-    def transaction_search(self, startDate, endDate):        
-        if isinstance(startDate, QDate):
-            startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
-            endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
-        else:
-            startDateFormatted = datetime(startDate.year, startDate.month, startDate.day)
-            endDateFormatted = datetime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
+    def transaction_search(self, startDate, endDate):
+        print("running transaction search")
+        print(f"startDate: {startDate}, type: {type(startDate)}")
+        print(f"endDate: {endDate}, type: {type(endDate)}")
+        try:
+            if isinstance(startDate, QDate):
+                startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
+                endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
+            else:
+                startDateFormatted = datetime(startDate.year, startDate.month, startDate.day)
+                endDateFormatted = datetime(endDate.year, endDate.month, endDate.day, 23, 59, 59)
 
-        print(f"New start date: {startDateFormatted}")
-        print(f"New end date: {endDateFormatted}")
+            print(f"New start date: {startDateFormatted}")
+            print(f"New end date: {endDateFormatted}")
 
-        transaction_counts = {
-            "successful_transaction_count": {"count": 0},
-            "failed_transaction_count": {"count": 0},
-            "declined_count": {"count": 0},
-            "rejected_count": {"count": 0},
-            "failed_count": {"count": 0},
-            "refunded_count": {"count": 0},
-            "transacted_amount": {"count": 0.00},
-            "total_refunded": {"count": 0.00},
-            "average_transaction_amount": {"count": 0.00},
-            "credit_card_txns": {"count": 0},
-            "apple_pay_txns": {"count": 0},
-            "google_pay_txns": {"count": 0},
-            "paypal_txns": {"count": 0}
-        }
+            transaction_counts = {
+                "successful_transaction_count": {"count": 0},
+                "failed_transaction_count": {"count": 0},
+                "declined_count": {"count": 0},
+                "rejected_count": {"count": 0},
+                "failed_count": {"count": 0},
+                "refunded_count": {"count": 0},
+                "transacted_amount": {"count": 0.00},
+                "total_refunded": {"count": 0.00},
+                "average_transaction_amount": {"count": 0.00},
+                "credit_card_txns": {"count": 0},
+                "apple_pay_txns": {"count": 0},
+                "google_pay_txns": {"count": 0},
+                "paypal_txns": {"count": 0}
+            }
 
-        transaction_average = 0.00
+            transaction_average = 0.00
 
-        collection = self.gateway.transaction.search(
-          braintree.TransactionSearch.created_at.between(
-            startDateFormatted,
-            endDateFormatted
-          )
-        )
+            collection = self.gateway.transaction.search(
+              braintree.TransactionSearch.created_at.between(
+                startDateFormatted,
+                endDateFormatted
+              )
+            )
 
-        for transaction in collection.items:
-            # If the transaction  has a successful status, add to the success count in the dictionary.
-            ## We also count the total amount processed and total successful transactions here.
-            if (transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled")) and (transaction.refunded_transaction_id == None):
-                print("Success transaction ID: " + transaction.id)
-                print("Payment method: " + transaction.payment_instrument_type)
-                transaction_counts["successful_transaction_count"]["count"] += 1
-                transaction_counts["transacted_amount"]["count"] += float(transaction.amount)
-            # Counting processor declined transactions.
-            elif transaction.status == "processor_declined":
-                print("Processor Declined transaction ID: " + transaction.id)
-                transaction_counts["failed_transaction_count"]["count"] += 1
-                transaction_counts["declined_count"]["count"] += 1
-            # Counting gateway rejected transactions.
-            elif transaction.status == "gateway_rejected":
-                print("Gateway Rejected transaction ID: " + transaction.id)
-                transaction_counts["failed_transaction_count"]["count"] += 1
-                transaction_counts["rejected_count"]["count"] += 1
-            # Any other failed txn type gets tossed into these buckets.
-            elif transaction.status in ("failed", "authorization_expired", "settlement_declined", "voided"):
-                print("Failed transaction ID: " + transaction.id)
-                transaction_counts["failed_transaction_count"]["count"] += 1
-                transaction_counts["failed_count"]["count"] += 1
+            for transaction in collection.items:
+                # If the transaction  has a successful status, add to the success count in the dictionary.
+                ## We also count the total amount processed and total successful transactions here.
+                if (transaction.status in ("authorized", "submitted_for_settlement", "settling", "settled")) and (transaction.refunded_transaction_id == None):
+                    print("Success transaction ID: " + transaction.id)
+                    print("Payment method: " + transaction.payment_instrument_type)
+                    transaction_counts["successful_transaction_count"]["count"] += 1
+                    transaction_counts["transacted_amount"]["count"] += float(transaction.amount)
+                # Counting processor declined transactions.
+                elif transaction.status == "processor_declined":
+                    print("Processor Declined transaction ID: " + transaction.id)
+                    transaction_counts["failed_transaction_count"]["count"] += 1
+                    transaction_counts["declined_count"]["count"] += 1
+                # Counting gateway rejected transactions.
+                elif transaction.status == "gateway_rejected":
+                    print("Gateway Rejected transaction ID: " + transaction.id)
+                    transaction_counts["failed_transaction_count"]["count"] += 1
+                    transaction_counts["rejected_count"]["count"] += 1
+                # Any other failed txn type gets tossed into these buckets.
+                elif transaction.status in ("failed", "authorization_expired", "settlement_declined", "voided"):
+                    print("Failed transaction ID: " + transaction.id)
+                    transaction_counts["failed_transaction_count"]["count"] += 1
+                    transaction_counts["failed_count"]["count"] += 1
 
-            # This is where we count the refund stats.
-            ## UPDATE: Instead of searching for the refund IDs, now we just pull any refunds within this search range.
-            ## That would be the case if a refunded_transaction_id exists
-            if (transaction.refunded_transaction_id != None):
-                # If so, we just add 1 to the refund count and add the amount of the transaction to the total amount refunded count.
-                transaction_counts["refunded_count"]["count"] += 1
-                transaction_counts["total_refunded"]["count"] += float(transaction.amount)
+                # This is where we count the refund stats.
+                ## UPDATE: Instead of searching for the refund IDs, now we just pull any refunds within this search range.
+                ## That would be the case if a refunded_transaction_id exists
+                if (transaction.refunded_transaction_id != None):
+                    # If so, we just add 1 to the refund count and add the amount of the transaction to the total amount refunded count.
+                    transaction_counts["refunded_count"]["count"] += 1
+                    transaction_counts["total_refunded"]["count"] += float(transaction.amount)
 
-            # This is where we count the payment methods used.
-            if (transaction.payment_instrument_type == "credit_card"):
-                transaction_counts["credit_card_txns"]["count"] += 1
-            elif (transaction.payment_instrument_type == "apple_pay_card"):
-                transaction_counts["apple_pay_txns"]["count"] += 1
-            elif (transaction.payment_instrument_type == "android_pay_card"):
-                transaction_counts["google_pay_txns"]["count"] += 1
-            elif (transaction.payment_instrument_type == "paypal_account"):
-                transaction_counts["paypal_txns"]["count"] += 1
+                # This is where we count the payment methods used.
+                if (transaction.payment_instrument_type == "credit_card"):
+                    transaction_counts["credit_card_txns"]["count"] += 1
+                elif (transaction.payment_instrument_type == "apple_pay_card"):
+                    transaction_counts["apple_pay_txns"]["count"] += 1
+                elif (transaction.payment_instrument_type == "android_pay_card"):
+                    transaction_counts["google_pay_txns"]["count"] += 1
+                elif (transaction.payment_instrument_type == "paypal_account"):
+                    transaction_counts["paypal_txns"]["count"] += 1
 
-        # This is where we calculate the transaction average and add it to the dictionary.
-        # UPDATE: Adding a check here to see if the successful txn count is 0.
-        # If it is, we just define transaction_average as 0 to avoid any divide by 0 errors.
-        if (transaction_counts["successful_transaction_count"]["count"] != 0):
-            transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
-        else:
-            transaction_average = 0
-        
-        # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
-        transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
-        
-        # Also cutting the total amount transacted to the hundredths place.
-        transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
-        transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
+            # This is where we calculate the transaction average and add it to the dictionary.
+            # UPDATE: Adding a check here to see if the successful txn count is 0.
+            # If it is, we just define transaction_average as 0 to avoid any divide by 0 errors.
+            if (transaction_counts["successful_transaction_count"]["count"] != 0):
+                transaction_average = round(transaction_counts["transacted_amount"]["count"] / transaction_counts["successful_transaction_count"]["count"], 2)
+            else:
+                transaction_average = 0
+            
+            # Also forcing the values to be displayed with two decimal places, even if they're 0. We do this for all three values representing money.
+            transaction_counts["average_transaction_amount"]["count"] = f'{transaction_average:.2f}'
+            
+            # Also cutting the total amount transacted to the hundredths place.
+            transaction_counts["transacted_amount"]["count"] = f'{round(transaction_counts["transacted_amount"]["count"], 2):.2f}'
+            transaction_counts["total_refunded"]["count"] = f'{transaction_counts["total_refunded"]["count"]:.2f}'
 
-        print(transaction_counts)
-        
-        self.update_widget_data(transaction_counts)
+            print(transaction_counts)
+            
+            self.update_widget_data(transaction_counts)
+        except Exception as e:
+            print(f"Error in transaction_search: {e}")
 
     # This function now controls all of the adding and removing of widgets.
     def update_widget_data(self, new_data):
