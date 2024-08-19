@@ -25,6 +25,8 @@ class TransactionWidget(QWidget):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
 
+        waiting_message_signal = pyqtSignal()
+
         self.successful_transaction_count = transaction_data["successful_transaction_count"]["count"]
         self.transacted_amount_count = transaction_data["transacted_amount"]["count"]
         self.failed_transaction_count = transaction_data["failed_transaction_count"]["count"]
@@ -113,6 +115,7 @@ class TransactionWidget(QWidget):
     def waiting_message(self):
         self.waiting_label = QLabel("Gathering new data...")
         self.layout.addWidget(self.waiting_label)
+        print("Displaying waiting message...")
         
         
 
@@ -213,6 +216,9 @@ class MainWindow(QMainWindow):
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
         self.calendar.clicked.connect(self.handle_calendar_click)
+        
+        # Connect the custom signal to the transaction_search slot.
+        self.countWidget.waiting_message_signal.connect(self.transaction_search(self.start_date, self.end_date))
 
         widget = QWidget()
         widget.setLayout(self.layout)
@@ -237,20 +243,22 @@ class MainWindow(QMainWindow):
             if hasattr(self, 'countWidget'):
                 print("callig waiting message")
                 self.countWidget.waiting_message()
+
+            # Emit the custom signal to trigger transaction_search in TransactionWidget
+            self.countWidget.waiting_message_signal.emit()
                 
             # Force the GUI to update
-            print("Calling QApplication.processEvents()")
-            QApplication.processEvents()
-
-            print(f"Start date passed into transaction_search: {self.start_date}")
-            print(f"End date passed into transaction_search: {self.end_date}")
-
-            try:
-                # Use QTimer to delay the transaction search slightly
-                print("Setting QTimer.singleShot")
-                QTimer.singleShot(100, lambda: self.transaction_search(self.start_date, self.end_date))
-            except Exception as e:
-                print(f"Error during transaction search: {e}")
+##            print("Calling QApplication.processEvents()")
+##            QApplication.processEvents()
+##
+##            try:
+##                # Use QTimer to delay the transaction search slightly
+##                print(f"Start date passed into transaction_search: {self.start_date}")
+##                print(f"End date passed into transaction_search: {self.end_date}")
+##                print("Setting QTimer.singleShot")
+##                QTimer.singleShot(100, lambda: self.transaction_search(self.start_date, self.end_date))
+##            except Exception as e:
+##                print(f"Error during transaction search: {e}")
 
             # Reset them both to None so that the user can run a new search in the same window.
             self.start_date = None
