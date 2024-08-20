@@ -5,7 +5,7 @@ import argparse
 import math
 import re
 from datetime import date, datetime, timedelta
-from PyQt6.QtCore import QDate, Qt, QTimer
+from PyQt6.QtCore import QDate, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication,
@@ -216,9 +216,6 @@ class MainWindow(QMainWindow):
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
         self.calendar.clicked.connect(self.handle_calendar_click)
-        
-        # Connect the custom signal to the transaction_search slot.
-        self.countWidget.waiting_message_signal.connect(self.transaction_search(self.start_date, self.end_date))
 
         widget = QWidget()
         widget.setLayout(self.layout)
@@ -263,6 +260,10 @@ class MainWindow(QMainWindow):
             # Reset them both to None so that the user can run a new search in the same window.
             self.start_date = None
             self.end_date = None
+
+    def handle_waiting_message(self):
+        print("Waiting message completed. Now calling transaction_search.")
+        self.transaction_search(self.start_date, self.end_date)
 
     def transaction_search(self, startDate, endDate):
         print("running transaction search")
@@ -376,6 +377,9 @@ class MainWindow(QMainWindow):
         # If not, we create the widget with the data - the initial run.
         else:
             self.countWidget = TransactionWidget(new_data)
+
+        # Connect the signal to the slot (only once)
+        self.countWidget.waiting_message_signal.connect(self.handle_waiting_message)
             
         # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
