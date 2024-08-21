@@ -5,7 +5,7 @@ import argparse
 import math
 import re
 from datetime import date, datetime, timedelta
-from PyQt6.QtCore import QDate, Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import QDate, Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QPalette, QColor
 from PyQt6.QtWidgets import (
     QApplication,
@@ -21,11 +21,14 @@ from PyQt6.QtWidgets import (
 )
 
 class TransactionWidget(QWidget):
+
+    waiting_message_signal = pyqtSignal()
+    
     def __init__(self, transaction_data):
         super(TransactionWidget, self).__init__()
         self.setAutoFillBackground(True)
 
-        waiting_message_signal = pyqtSignal()
+        self.waiting_label = None
 
         self.successful_transaction_count = transaction_data["successful_transaction_count"]["count"]
         self.transacted_amount_count = transaction_data["transacted_amount"]["count"]
@@ -113,9 +116,17 @@ class TransactionWidget(QWidget):
                 value["label"].setText(f"{initial_text}{value['count']}")
 
     def waiting_message(self):
-        self.waiting_label = QLabel("Gathering new data...")
-        self.layout.addWidget(self.waiting_label)
+        if self.waiting_label is None:
+            self.waiting_label = QLabel("Gathering new data...")
+            self.layout.addWidget(self.waiting_label)
         print("Displaying waiting message...")
+
+    def remove_waiting_message(self):
+        if self.waiting_label is not None:
+            self.layout.removeWidget(self.waiting_label)
+            self.waiting_label.deleteLater()
+            self.waiting_label = None
+        print("Removing waiting message...")
         
         
 
@@ -150,7 +161,6 @@ class DateWidget(QWidget):
         self.search_range.setText(f"Search range: {formatted_start_date} - {formatted_end_date}")
 
 class MainWindow(QMainWindow):
-
     def __init__(self, start_date=None, end_date=None):
         super(MainWindow, self).__init__()
 
@@ -213,6 +223,8 @@ class MainWindow(QMainWindow):
             self.datesWidget = DateWidget(startDate, endDate)
             self.transaction_search(startDate, endDate)
 
+        self.waiting_message_displayed = False
+        
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
         self.calendar.clicked.connect(self.handle_calendar_click)
@@ -237,12 +249,18 @@ class MainWindow(QMainWindow):
 
             # Call the functions to change the widget data with the new dates the user just selected.
             self.datesWidget.update_date_range(self.start_date, self.end_date)
-            if hasattr(self, 'countWidget'):
-                print("callig waiting message")
-                self.countWidget.waiting_message()
+            try:
+                if hasattr(self, 'countWidget'):
+                    print("Calling waiting message")
+                    self.countWidget.waiting_message()
+                    self.waiting_message_displayed = True
+                    # Store the dates in local variables
+                    start_date = self.start_date
+                    end_date = self.end_date
 
-            # Emit the custom signal to trigger transaction_search in TransactionWidget
-            self.countWidget.waiting_message_signal.emit()
+                    QTimer.singleShot(0, lambda: self.start_transaction_search(start_date, end_date))
+            except Exception as e:
+                print(f"Error during click: {e}")
                 
             # Force the GUI to update
 ##            print("Calling QApplication.processEvents()")
@@ -261,9 +279,16 @@ class MainWindow(QMainWindow):
             self.start_date = None
             self.end_date = None
 
+    def start_transaction_search(self, start_date, end_date):
+        self.countWidget.waiting_message_signal.emit()
+        self.transaction_search(start_date, end_date)
+            
+    @pyqtSlot()
     def handle_waiting_message(self):
-        print("Waiting message completed. Now calling transaction_search.")
-        self.transaction_search(self.start_date, self.end_date)
+        if self.waiting_message_displayed:
+            print("Waiting message completed. Now calling transaction_search.")
+            #self.transaction_search(self.start_date, self.end_date)
+            self.waiting_message_displayed = False
 
     def transaction_search(self, startDate, endDate):
         print("running transaction search")
@@ -377,9 +402,10 @@ class MainWindow(QMainWindow):
         # If not, we create the widget with the data - the initial run.
         else:
             self.countWidget = TransactionWidget(new_data)
+            self.countWidget.waiting_message_signal.connect(self.handle_waiting_message)
 
         # Connect the signal to the slot (only once)
-        self.countWidget.waiting_message_signal.connect(self.handle_waiting_message)
+        
             
         # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
