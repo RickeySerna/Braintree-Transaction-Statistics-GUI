@@ -111,6 +111,7 @@ class TransactionWidget(QWidget):
                 initial_text = match.group(1)
                 value["label"].setText(f"{initial_text}{value['count']}")
 
+
 class TransactionSearchThread(QThread):
     search_completed = pyqtSignal()
 
@@ -153,6 +154,17 @@ class DateWidget(QWidget):
         print(f"Formatted end date: {formatted_end_date}")
 
         self.search_range.setText(f"Search range: {formatted_start_date} - {formatted_end_date}")
+
+    def update_half_date_range(self, start_date):
+        print(f"Start date inside update_half_date_range: {start_date}")
+
+        start_python_date = date(start_date.year(), start_date.month(), start_date.day())
+
+        formatted_start_date = start_python_date.strftime("%-m/%-d/%Y")
+
+        print(f"Formatted start date: {formatted_start_date}")
+
+        self.search_range.setText(f"Search range: {formatted_start_date} - ")
 
 class MainWindow(QMainWindow):
 
@@ -239,30 +251,29 @@ class MainWindow(QMainWindow):
             # If not, set it to whatever date was clicked.
             self.start_date = date
             print(f"Start date: {self.start_date}")
+            self.datesWidget.update_half_date_range(self.start_date)
         else:
             # If it does, instead set the end_date to whatever date was clicked.
             self.end_date = date
             print(f"End date: {self.end_date}")
 
-            # Call the functions to change the widget data with the new dates the user just selected.
-            print("displaying message")
-            self.status_bar.showMessage("Searching for transactions...")
-            print("message displayed")
+            self.datesWidget.update_date_range(self.start_date, self.end_date)
 
+            # Call the functions to change the widget data with the new dates the user just selected.
+            self.status_bar.showMessage("Searching for transactions...")
+            
             self.search_thread = TransactionSearchThread(self.start_date, self.end_date, self.transaction_search)
             self.search_thread.search_completed.connect(self.on_search_completed)
             self.search_thread.start()
 
     def on_search_completed(self):
         self.status_bar.clearMessage()
-        self.datesWidget.update_date_range(self.start_date, self.end_date)
 
         # Reset them both to None so that the user can run a new search in the same window.
         self.start_date = None
         self.end_date = None
 
     def transaction_search(self, startDate, endDate):
-        print("reached?")
         if isinstance(startDate, QDate):
             startDateFormatted = datetime(startDate.year(), startDate.month(), startDate.day())
             endDateFormatted = datetime(endDate.year(), endDate.month(), endDate.day(), 23, 59, 59)
