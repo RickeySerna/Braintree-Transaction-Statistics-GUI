@@ -18,7 +18,9 @@ from PyQt6.QtWidgets import (
     QWidget,
     QLineEdit,
     QCalendarWidget,
-    QStatusBar
+    QStatusBar,
+    QDialog,
+    QDialogButtonBox
 )
 
 class TransactionWidget(QWidget):
@@ -166,6 +168,24 @@ class DateWidget(QWidget):
 
         self.search_range.setText(f"Search range: {formatted_start_date} - ")
 
+class CustomDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setWindowTitle("HELLO!")
+
+        QBtn = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout = QVBoxLayout()
+        message = QLabel("Something happened, is that OK?")
+        self.layout.addWidget(message)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
+
 class MainWindow(QMainWindow):
 
     def __init__(self, start_date=None, end_date=None):
@@ -253,18 +273,30 @@ class MainWindow(QMainWindow):
             print(f"Start date: {self.start_date}")
             self.datesWidget.update_half_date_range(self.start_date)
         else:
+
+            result = date >= self.start_date
+            print(f"End date greater than or equal to?: {result}")
             # If it does, instead set the end_date to whatever date was clicked.
-            self.end_date = date
-            print(f"End date: {self.end_date}")
+            if (date >= self.start_date): 
+                self.end_date = date
+                print(f"End date: {self.end_date}")
 
-            self.datesWidget.update_date_range(self.start_date, self.end_date)
+                self.datesWidget.update_date_range(self.start_date, self.end_date)
 
-            # Call the functions to change the widget data with the new dates the user just selected.
-            self.status_bar.showMessage("Searching for transactions...")
-            
-            self.search_thread = TransactionSearchThread(self.start_date, self.end_date, self.transaction_search)
-            self.search_thread.search_completed.connect(self.on_search_completed)
-            self.search_thread.start()
+                # Call the functions to change the widget data with the new dates the user just selected.
+                self.status_bar.showMessage("Searching for transactions...")
+                
+                self.search_thread = TransactionSearchThread(self.start_date, self.end_date, self.transaction_search)
+                self.search_thread.search_completed.connect(self.on_search_completed)
+                self.search_thread.start()
+            else:
+                print("bad date selection!")
+                dlg = CustomDialog(self)
+                if dlg.exec():
+                    print("Success!")
+                else:
+                    print("Cancel!")
+
 
     def on_search_completed(self):
         self.status_bar.clearMessage()
