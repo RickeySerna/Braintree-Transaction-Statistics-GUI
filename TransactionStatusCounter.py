@@ -113,7 +113,6 @@ class TransactionWidget(QWidget):
                 initial_text = match.group(1)
                 value["label"].setText(f"{initial_text}{value['count']}")
 
-
 class TransactionSearchThread(QThread):
     search_completed = pyqtSignal()
 
@@ -168,20 +167,19 @@ class DateWidget(QWidget):
 
         self.search_range.setText(f"Search range: {formatted_start_date} - ")
 
-class CustomDialog(QDialog):
+class BadDateBox(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.setWindowTitle("HELLO!")
+        self.setWindowTitle("Date Selection Error")
 
-        QBtn = QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        QBtn = QDialogButtonBox.StandardButton.Ok
 
         self.buttonBox = QDialogButtonBox(QBtn)
         self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
 
         self.layout = QVBoxLayout()
-        message = QLabel("Something happened, is that OK?")
+        message = QLabel("The end date cannot be before the start date.")
         self.layout.addWidget(message)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
@@ -291,11 +289,8 @@ class MainWindow(QMainWindow):
                 self.search_thread.start()
             else:
                 print("bad date selection!")
-                dlg = CustomDialog(self)
-                if dlg.exec():
-                    print("Success!")
-                else:
-                    print("Cancel!")
+                dlg = BadDateBox(self)
+                dlg.exec()
 
 
     def on_search_completed(self):
