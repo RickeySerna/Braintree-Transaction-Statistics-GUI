@@ -209,6 +209,10 @@ class MainWindow(QMainWindow):
         self.calendar = QCalendarWidget(self)
         self.calendar.setMinimumDate(QDate(2000, 1, 1))
         self.calendar.setMaximumDate(QDate(2099, 12, 31))
+        self.calendar.hide()
+
+        self.toggle_calendar_button = QPushButton("Show Calendar", self)
+        self.toggle_calendar_button.clicked.connect(self.toggle_calendar)
 
         # Initialize the layout immediately so that it doesn't error out when called in the search function.
         self.layout = QVBoxLayout()
@@ -408,10 +412,19 @@ class MainWindow(QMainWindow):
             
         # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
+        self.layout.addWidget(self.toggle_calendar_button)
         self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
         self.status_bar.clearMessage()
+
+    def toggle_calendar(self):
+        if self.calendar.isVisible():
+            self.calendar.hide()
+            self.toggle_calendar_button.setText("Show Calendar")
+        else:
+            self.calendar.show()
+            self.toggle_calendar_button.setText("Hide Calendar")
 
 
 def convertToYYYY(date):
