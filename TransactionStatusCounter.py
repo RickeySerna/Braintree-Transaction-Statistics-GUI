@@ -190,6 +190,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("My App")
+        self.setGeometry(100, 100, 400, 300)
 
         # Initialize the gateway
         self.gateway = braintree.BraintreeGateway(
@@ -422,11 +423,12 @@ class MainWindow(QMainWindow):
         if self.calendar.isVisible():
             self.calendar.hide()
             self.toggle_calendar_button.setText("Show Calendar")
+            self.resize(400, 300)  # Resize to original size
         else:
             self.calendar.show()
             self.toggle_calendar_button.setText("Hide Calendar")
-
-
+            self.resize(400, 500)  # Resize to fit the calendar
+            
 def convertToYYYY(date):
     if date and len(date.split('/')[2]) == 2:
         parts = date.split('/')
