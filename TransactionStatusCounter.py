@@ -190,7 +190,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("My App")
-        self.setGeometry(100, 100, 400, 300)
 
         # Initialize the gateway
         self.gateway = braintree.BraintreeGateway(
@@ -205,6 +204,8 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar(self)
         self.setStatusBar(self.status_bar)
 
+        self.calendar_added = False
+
 
         # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
@@ -216,7 +217,11 @@ class MainWindow(QMainWindow):
         self.toggle_calendar_button.clicked.connect(self.toggle_calendar)
 
         # Initialize the layout immediately so that it doesn't error out when called in the search function.
-        self.layout = QVBoxLayout()
+        widget = QWidget()
+        self.setCentralWidget(widget)
+        self.layout = QVBoxLayout(widget)
+        #widget.setLayout(self.layout)
+        
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
@@ -260,10 +265,6 @@ class MainWindow(QMainWindow):
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
         self.calendar.clicked.connect(self.handle_calendar_click)
-
-        widget = QWidget()
-        widget.setLayout(self.layout)
-        self.setCentralWidget(widget)
 
     # Changing this function up a bit.
     def handle_calendar_click(self, date):
@@ -414,20 +415,23 @@ class MainWindow(QMainWindow):
         # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
         self.layout.addWidget(self.toggle_calendar_button)
-        self.layout.addWidget(self.calendar)
+        #self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
         self.status_bar.clearMessage()
 
     def toggle_calendar(self):
-        if self.calendar.isVisible():
+        if self.calendar_added:
+            self.layout.removeWidget(self.calendar)
             self.calendar.hide()
             self.toggle_calendar_button.setText("Show Calendar")
-            self.resize(400, 300)  # Resize to original size
+            self.calendar_added = False
         else:
+            self.layout.insertWidget(1, self.calendar)  # Insert at the second position
             self.calendar.show()
             self.toggle_calendar_button.setText("Hide Calendar")
-            self.resize(400, 500)  # Resize to fit the calendar
+            self.calendar_added = True
+
             
 def convertToYYYY(date):
     if date and len(date.split('/')[2]) == 2:
