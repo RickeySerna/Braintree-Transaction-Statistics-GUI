@@ -437,14 +437,38 @@ def main():
     app = QApplication(sys.argv)
 
     parser = argparse.ArgumentParser(description="Transaction search")
-    parser.add_argument("start_date", nargs="?", default=None, help="Start date (format: MM/DD/YYYY or MM/DD/YY))")
-    parser.add_argument("end_date", nargs="?", default=None, help="End date (format: MM/DD/YYYY or MM/DD/YY))")
+    parser.add_argument("arg1", nargs="?", default=None, help="Start date (format: MM/DD/YYYY or MM/DD/YY) or number of days from today")
+    parser.add_argument("arg2", nargs="?", default=None, help="End date (format: MM/DD/YYYY or MM/DD/YY)")
     args = parser.parse_args()
 
-    args.start_date = convertToYYYY(args.start_date)
-    args.end_date = convertToYYYY(args.end_date)
+    start_date_str = None
+    end_date_str = None
 
-    window = MainWindow(args.start_date, args.end_date)
+    # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
+    if args.arg1 is not None and args.arg2 is None:
+        try:
+            # Store the days to search back in a variable.
+            days = int(args.arg1)
+
+            # Store todays date as the end date of the search.
+            end_date = datetime.today()
+
+            # Set the starting date of the search to todays date minus however many days the user entered.
+            start_date = end_date - timedelta(days=days)
+
+            # Format the dates properly.
+            start_date_str = start_date.strftime("%m/%d/%Y")
+            end_date_str = end_date.strftime("%m/%d/%Y")
+        # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
+        except ValueError:
+            raise ValueError("Please enter an integer representing how many days back the search should go.")
+    # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
+    elif args.arg1 is not None and args.arg2 is not None:
+        # Two arguments provided, treat them as start and end dates
+        start_date_str = convertToYYYY(args.arg1)
+        end_date_str = convertToYYYY(args.arg2)
+
+    window = MainWindow(start_date_str, end_date_str)
     window.show()
 
     sys.exit(app.exec())
