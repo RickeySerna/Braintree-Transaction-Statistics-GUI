@@ -201,11 +201,9 @@ class MainWindow(QMainWindow):
           )
         )
 
+        # Creating the status bar to be used to let the user know when a new search is running.
         self.status_bar = QStatusBar(self)
         self.setStatusBar(self.status_bar)
-
-        self.calendar_added = False
-
 
         # Creating a calendar widget
         self.calendar = QCalendarWidget(self)
@@ -415,23 +413,18 @@ class MainWindow(QMainWindow):
         # Then we add all of the widgets here. We don't need to wrap these statements in a conditional; if it's the first search, they're all added.
         ## If it's a repeat search, PyQt sees that the widgets already exist and so the addWidget() calls are essentially ignored.
         self.layout.addWidget(self.toggle_calendar_button)
-        #self.layout.addWidget(self.calendar)
+        self.layout.addWidget(self.calendar)
         self.layout.addWidget(self.datesWidget)
         self.layout.addWidget(self.countWidget)
         self.status_bar.clearMessage()
 
     def toggle_calendar(self):
-        if self.calendar_added:
-            self.layout.removeWidget(self.calendar)
+        if self.calendar.isVisible():
             self.calendar.hide()
             self.toggle_calendar_button.setText("Show Calendar")
-            self.calendar_added = False
         else:
-            self.layout.insertWidget(1, self.calendar)  # Insert at the second position
             self.calendar.show()
             self.toggle_calendar_button.setText("Hide Calendar")
-            self.calendar_added = True
-
             
 def convertToYYYY(date):
     if date and len(date.split('/')[2]) == 2:
