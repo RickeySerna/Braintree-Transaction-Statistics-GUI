@@ -184,6 +184,23 @@ class BadDateBox(QDialog):
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
 
+class BadDateTerminalBox(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Date Selection Error")
+
+        QBtn = QDialogButtonBox.StandardButton.Ok
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.accept)
+
+        self.layout = QVBoxLayout()
+        message = QLabel("The end date cannot be before the start date.")
+        self.layout.addWidget(message)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
+
 class MainWindow(QMainWindow):
 
     def __init__(self, start_date=None, end_date=None):
@@ -459,17 +476,25 @@ def main():
             # Format the dates properly.
             start_date_str = start_date.strftime("%m/%d/%Y")
             end_date_str = end_date.strftime("%m/%d/%Y")
+
+            window = MainWindow(start_date_str, end_date_str)
+            window.show()
         # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
         except ValueError:
             raise ValueError("Please enter an integer representing how many days back the search should go.")
     # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
     elif args.arg1 is not None and args.arg2 is not None:
+        try:
         # Two arguments provided, treat them as start and end dates
-        start_date_str = convertToYYYY(args.arg1)
-        end_date_str = convertToYYYY(args.arg2)
-
-    window = MainWindow(start_date_str, end_date_str)
-    window.show()
+            start_date_str = convertToYYYY(args.arg1)
+            end_date_str = convertToYYYY(args.arg2)
+            window = MainWindow(start_date_str, end_date_str)
+            window.show()
+        except:
+            dlg = BadDateBox()
+            dlg.exec()
+            sys.exit(1)
+            
 
     sys.exit(app.exec())
 
