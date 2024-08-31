@@ -461,8 +461,11 @@ def main():
     start_date_str = None
     end_date_str = None
 
+    print(f"Args: {args.arg1} & {args.arg2}")
+
     # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
     if args.arg1 is not None and args.arg2 is None:
+        print("Using flow 1")
         try:
             # Store the days to search back in a variable.
             days = int(args.arg1)
@@ -477,23 +480,32 @@ def main():
             start_date_str = start_date.strftime("%m/%d/%Y")
             end_date_str = end_date.strftime("%m/%d/%Y")
 
-            window = MainWindow(start_date_str, end_date_str)
-            window.show()
+            #window = MainWindow(start_date_str, end_date_str)
+            #window.show()
         # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
         except ValueError:
             raise ValueError("Please enter an integer representing how many days back the search should go.")
+            #sys.exit(1)
     # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
     elif args.arg1 is not None and args.arg2 is not None:
+        print("Using flow 2")
         try:
         # Two arguments provided, treat them as start and end dates
             start_date_str = convertToYYYY(args.arg1)
             end_date_str = convertToYYYY(args.arg2)
-            window = MainWindow(start_date_str, end_date_str)
-            window.show()
+            #window = MainWindow(start_date_str, end_date_str)
+            #window.show()
         except:
             dlg = BadDateBox()
             dlg.exec()
             sys.exit(1)
+    # In this flow, the user provided 0 arguments so we use the default behavior. Just submit the dates as NoneTypes and that'll be used to search the last 30 days in MainWindow.
+    else:
+        print("Using flow 3")
+
+
+    window = MainWindow(start_date_str, end_date_str)
+    window.show()
             
 
     sys.exit(app.exec())
