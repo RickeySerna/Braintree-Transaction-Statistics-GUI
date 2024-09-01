@@ -479,13 +479,11 @@ def main():
             # Format the dates properly.
             start_date_str = start_date.strftime("%m/%d/%Y")
             end_date_str = end_date.strftime("%m/%d/%Y")
-
-            #window = MainWindow(start_date_str, end_date_str)
-            #window.show()
         # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
         except ValueError:
-            raise ValueError("Please enter an integer representing how many days back the search should go.")
-            #sys.exit(1)
+            dlg = BadDateBox()
+            dlg.exec()
+            sys.exit(1)
     # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
     elif args.arg1 is not None and args.arg2 is not None:
         print("Using flow 2")
@@ -493,8 +491,6 @@ def main():
         # Two arguments provided, treat them as start and end dates
             start_date_str = convertToYYYY(args.arg1)
             end_date_str = convertToYYYY(args.arg2)
-            #window = MainWindow(start_date_str, end_date_str)
-            #window.show()
         except:
             dlg = BadDateBox()
             dlg.exec()
@@ -503,11 +499,14 @@ def main():
     else:
         print("Using flow 3")
 
-
-    window = MainWindow(start_date_str, end_date_str)
-    window.show()
+    try:
+        window = MainWindow(start_date_str, end_date_str)
+        window.show()
+    except:
+        dlg = BadDateBox()
+        dlg.exec()
+        sys.exit(1)
             
-
     sys.exit(app.exec())
 
 if __name__ == "__main__":
