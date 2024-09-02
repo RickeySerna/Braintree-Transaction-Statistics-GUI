@@ -179,10 +179,14 @@ class BadDateBox(QDialog):
         self.buttonBox.accepted.connect(self.accept)
 
         self.layout = QVBoxLayout()
-        message = QLabel("The end date cannot be before the start date.")
-        self.layout.addWidget(message)
+        self.message = QLabel("The end date cannot be before the start date.")
+        self.layout.addWidget(self.message)
         self.layout.addWidget(self.buttonBox)
         self.setLayout(self.layout)
+
+    def update_box_message(self, new_message):
+        print(new_message)
+        self.message.setText(f"{new_message}")
 
 class BadDateTerminalBox(QDialog):
     def __init__(self):
@@ -479,9 +483,13 @@ def main():
             # Format the dates properly.
             start_date_str = start_date.strftime("%m/%d/%Y")
             end_date_str = end_date.strftime("%m/%d/%Y")
+
+            window = MainWindow(start_date_str, end_date_str)
+            window.show()
         # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
-        except ValueError:
+        except:
             dlg = BadDateBox()
+            dlg.update_box_message("Invalid integer passed.")
             dlg.exec()
             sys.exit(1)
     # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
@@ -491,21 +499,19 @@ def main():
         # Two arguments provided, treat them as start and end dates
             start_date_str = convertToYYYY(args.arg1)
             end_date_str = convertToYYYY(args.arg2)
+            window = MainWindow(start_date_str, end_date_str)
+            window.show()
+        # If the users a date or dates that are not valid, this will be raised. We throw an error letting them know that.
         except:
             dlg = BadDateBox()
+            dlg.update_box_message("Invalid date(s) passed.")
             dlg.exec()
             sys.exit(1)
     # In this flow, the user provided 0 arguments so we use the default behavior. Just submit the dates as NoneTypes and that'll be used to search the last 30 days in MainWindow.
     else:
         print("Using flow 3")
-
-    try:
         window = MainWindow(start_date_str, end_date_str)
         window.show()
-    except:
-        dlg = BadDateBox()
-        dlg.exec()
-        sys.exit(1)
             
     sys.exit(app.exec())
 
