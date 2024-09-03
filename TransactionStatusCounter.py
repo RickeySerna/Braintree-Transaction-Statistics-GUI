@@ -465,12 +465,9 @@ def main():
     start_date_str = None
     end_date_str = None
 
-    print(f"Args: {args.arg1} & {args.arg2}")
-
-    # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
-    if args.arg1 is not None and args.arg2 is None:
-        print("Using flow 1")
-        try:
+    try: 
+        # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
+        if args.arg1 is not None and args.arg2 is None:
             # Store the days to search back in a variable.
             days = int(args.arg1)
 
@@ -483,35 +480,30 @@ def main():
             # Format the dates properly.
             start_date_str = start_date.strftime("%m/%d/%Y")
             end_date_str = end_date.strftime("%m/%d/%Y")
-
-            window = MainWindow(start_date_str, end_date_str)
-            window.show()
-        # Raised if the user enters a single argument that is not an int. We throw an error in that case telling them to enter an int.
-        except:
-            dlg = BadDateBox()
-            dlg.update_box_message("Invalid integer passed.")
-            dlg.exec()
-            sys.exit(1)
-    # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
-    elif args.arg1 is not None and args.arg2 is not None:
-        print("Using flow 2")
-        try:
-        # Two arguments provided, treat them as start and end dates
+            
+        # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
+        elif args.arg1 is not None and args.arg2 is not None:
+            # Two arguments provided, treat them as start and end dates
             start_date_str = convertToYYYY(args.arg1)
             end_date_str = convertToYYYY(args.arg2)
-            window = MainWindow(start_date_str, end_date_str)
-            window.show()
-        # If the users a date or dates that are not valid, this will be raised. We throw an error letting them know that.
-        except:
-            dlg = BadDateBox()
-            dlg.update_box_message("Invalid date(s) passed.")
-            dlg.exec()
-            sys.exit(1)
-    # In this flow, the user provided 0 arguments so we use the default behavior. Just submit the dates as NoneTypes and that'll be used to search the last 30 days in MainWindow.
-    else:
-        print("Using flow 3")
+            
+        # If neither flow triggered, the user provided 0 arguments so we use the default behavior. Just submit the dates as NoneTypes and that'll be used to search the last 30 days in MainWindow.
+
+
+        # Whatever happened to the date strings, now pass them into MainWindow().
         window = MainWindow(start_date_str, end_date_str)
         window.show()
+    except ValueError as e:
+        dlg = BadDateBox()
+
+        # We check for the message passed in ValueError. If it's a message with converting an int, then the error was with flow 1 so we use that error message.
+        if "invalid literal for int()" in str(e):
+            dlg.update_box_message("Invalid integer passed.")
+        # Otherwise, the error must have been with one of the dates from flow 2 so we use that error message instead.
+        else:
+            dlg.update_box_message("Invalid date(s) passed.")
+        dlg.exec()
+        sys.exit(1)
             
     sys.exit(app.exec())
 
