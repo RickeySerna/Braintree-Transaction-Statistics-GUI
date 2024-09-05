@@ -29,14 +29,14 @@ class TransactionWidget(QWidget):
         self.setAutoFillBackground(True)
 
         self.successful_transaction_count = transaction_data["successful_transaction_count"]["count"]
-        self.transacted_amount_count = transaction_data["transacted_amount"]["count"]
+        self.transacted_amount_count = float(transaction_data["transacted_amount"]["count"])
         self.failed_transaction_count = transaction_data["failed_transaction_count"]["count"]
         self.declined_count = transaction_data["declined_count"]["count"]
         self.rejected_count = transaction_data["rejected_count"]["count"]
         self.failed_count = transaction_data["failed_count"]["count"]
         self.refunded_count = transaction_data["refunded_count"]["count"]
-        self.total_refunded = transaction_data["total_refunded"]["count"]
-        self.average_transaction_amount = transaction_data["average_transaction_amount"]["count"]
+        self.total_refunded = float(transaction_data["total_refunded"]["count"])
+        self.average_transaction_amount = float(transaction_data["average_transaction_amount"]["count"])
         self.credit_card_txns = transaction_data["credit_card_txns"]["count"]
         self.apple_pay_txns = transaction_data["apple_pay_txns"]["count"]
         self.google_pay_txns = transaction_data["google_pay_txns"]["count"]
@@ -48,7 +48,7 @@ class TransactionWidget(QWidget):
                 "count": self.successful_transaction_count
             },
             "transacted_amount": {
-                "label": QLabel(f"Total successfully transacted: ${self.transacted_amount_count}"),
+                "label": QLabel(f"Total successfully transacted: ${self.transacted_amount_count:,.2f}"),
                 "count": self.transacted_amount_count
             },
             "failed_transaction_count": {
@@ -72,11 +72,11 @@ class TransactionWidget(QWidget):
                 "count": self.refunded_count
             },
             "total_refunded": {
-                "label": QLabel(f"Total amount refunded: ${self.total_refunded}"),
+                "label": QLabel(f"Total amount refunded: ${self.total_refunded:,.2f}"),
                 "count": self.total_refunded
             },
             "average_transaction_amount": {
-                "label": QLabel(f"Average transaction amount: ${self.average_transaction_amount}"),
+                "label": QLabel(f"Average transaction amount: ${self.average_transaction_amount:,.2f}"),
                 "count": self.average_transaction_amount
             },
             "credit_card_txns": {
@@ -111,7 +111,11 @@ class TransactionWidget(QWidget):
             match = re.match(r"^(.*: \$?)", current_text)
             if match:
                 initial_text = match.group(1)
-                value["label"].setText(f"{initial_text}{value['count']}")
+                if '$' in initial_text:
+                    formatted_value = f"{float(value['count']):,.2f}"
+                else:
+                    formatted_value = value['count']
+                value["label"].setText(f"{initial_text}{formatted_value}")
 
 class TransactionSearchThread(QThread):
     search_completed = pyqtSignal()
