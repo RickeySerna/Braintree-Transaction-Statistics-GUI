@@ -164,7 +164,6 @@ class DateWidget(QWidget):
         print(f"Start date inside update_half_date_range: {start_date}")
 
         start_python_date = date(start_date.year(), start_date.month(), start_date.day())
-
         formatted_start_date = start_python_date.strftime("%-m/%-d/%Y")
 
         print(f"Formatted start date: {formatted_start_date}")
@@ -217,14 +216,20 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("My App")
 
         # Initialize the gateway
-        self.gateway = braintree.BraintreeGateway(
-          braintree.Configuration(
-              braintree.Environment.Sandbox,
-              merchant_id="pzrgxphnvtycmdhq",
-              public_key="932hj9f244t2bf6f",
-              private_key="74a190cdf990805edd5a329d5bff37c0"
-          )
-        )
+        try:
+            self.gateway = braintree.BraintreeGateway(
+              braintree.Configuration(
+                  braintree.Environment.Sandbox,
+                  merchant_id="pzrgxphnvtycmdhq",
+                  public_key="932hj9f244t2bf6f",
+                  private_key="74a190cdf990805edd5a329d5bff37c0"
+              )
+            )
+        except:
+            dlg = BadDateBox()
+            dlg.update_box_message("Please enter your API keys in the file.")
+            dlg.exec()
+            sys.exit(1)
 
         # Creating the status bar to be used to let the user know when a new search is running.
         self.status_bar = QStatusBar(self)
