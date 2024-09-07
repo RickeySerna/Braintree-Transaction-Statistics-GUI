@@ -170,7 +170,7 @@ class DateWidget(QWidget):
 
         self.search_range.setText(f"Search range: {formatted_start_date} - ")
 
-class BadDateBox(QDialog):
+class ErrorMessageBox(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -191,22 +191,9 @@ class BadDateBox(QDialog):
         print(new_message)
         self.message.setText(f"{new_message}")
 
-class BadDateTerminalBox(QDialog):
-    def __init__(self):
-        super().__init__()
-
-        self.setWindowTitle("Date Selection Error")
-
-        QBtn = QDialogButtonBox.StandardButton.Ok
-
-        self.buttonBox = QDialogButtonBox(QBtn)
-        self.buttonBox.accepted.connect(self.accept)
-
-        self.layout = QVBoxLayout()
-        message = QLabel("The end date cannot be before the start date.")
-        self.layout.addWidget(message)
-        self.layout.addWidget(self.buttonBox)
-        self.setLayout(self.layout)
+    def update_box_title(self, new_title):
+        print(new_title)
+        self.setWindowTitle(f"{new_title}")
 
 class MainWindow(QMainWindow):
 
@@ -226,8 +213,9 @@ class MainWindow(QMainWindow):
               )
             )
         except:
-            dlg = BadDateBox()
+            dlg = ErrorMessageBox()
             dlg.update_box_message("Please enter your API keys in the file.")
+            dlg.update_box_title("API Key Error")
             dlg.exec()
             sys.exit(1)
 
@@ -307,7 +295,7 @@ class MainWindow(QMainWindow):
         else:
 
             result = date >= self.start_date
-            print(f"End date greater than or equal to?: {result}")
+            print(f"End date greater than or equal to start date?: {result}")
             # If it does, instead set the end_date to whatever date was clicked.
             if (date >= self.start_date): 
                 self.end_date = date
@@ -322,8 +310,7 @@ class MainWindow(QMainWindow):
                 self.search_thread.search_completed.connect(self.on_search_completed)
                 self.search_thread.start()
             else:
-                print("bad date selection!")
-                dlg = BadDateBox(self)
+                dlg = ErrorMessageBox(self)
                 dlg.exec()
 
 
@@ -503,7 +490,8 @@ def main():
         window = MainWindow(start_date_str, end_date_str)
         window.show()
     except ValueError as e:
-        dlg = BadDateBox()
+        dlg = ErrorMessageBox()
+        dlg.update_box_title("Date Input Error")
 
         # We check for the message passed in ValueError. If it's a message with converting an int, then the error was with flow 1 so we use that error message.
         if "invalid literal for int()" in str(e):
