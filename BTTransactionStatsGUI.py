@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox
 )
+from braintree.exceptions.authentication_error import AuthenticationError
 
 class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
@@ -210,6 +211,7 @@ class MainWindow(QMainWindow):
                   merchant_id="pzrgxphnvtycmdhq",
                   public_key="932hj9f244t2bf6f",
                   private_key="74a190cdf990805edd5a329d5bff37c0"
+                  #74a190cdf990805edd5a329d5bff37c0
               )
             )
         except:
@@ -262,7 +264,15 @@ class MainWindow(QMainWindow):
             thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
-            self.transaction_search(thirtyDaysAgo, todayDate)
+            
+            try:
+                self.transaction_search(thirtyDaysAgo, todayDate)
+            except AuthenticationError:
+                dlg = ErrorMessageBox()
+                dlg.update_box_message("There was an issue with your API keys. Please make sure they're valid, then try again.")
+                dlg.update_box_title("API Key Error")
+                dlg.exec()
+                sys.exit(1)
             
         else:
             # In this case, the dates have been provided via command line arguments.
@@ -276,7 +286,15 @@ class MainWindow(QMainWindow):
             self.end_date = None
 
             self.datesWidget = DateWidget(startDate, endDate)
-            self.transaction_search(startDate, endDate)
+            
+            try:
+                self.transaction_search(startDate, endDate)
+            except AuthenticationError:
+                dlg = ErrorMessageBox()
+                dlg.update_box_message("There was an issue with your API keys. Please make sure they're valid, then try again.")
+                dlg.update_box_title("API Key Error")
+                dlg.exec()
+                sys.exit(1)
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
