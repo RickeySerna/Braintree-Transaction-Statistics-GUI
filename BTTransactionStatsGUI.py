@@ -485,12 +485,17 @@ def main():
     parser = argparse.ArgumentParser(description="Transaction search")
     parser.add_argument("arg1", nargs="?", default=None, help="Start date (format: MM/DD/YYYY or MM/DD/YY) or number of days from today")
     parser.add_argument("arg2", nargs="?", default=None, help="End date (format: MM/DD/YYYY or MM/DD/YY)")
-    args = parser.parse_args()
 
-    start_date_str = None
-    end_date_str = None
+    try:
+        # First we check for the amount of arguments passed. If they provided more than two, we throw a ValueError right off the bat.
+        if len(sys.argv) > 3:
+            raise ValueError("Too many arguments")
 
-    try: 
+        args = parser.parse_args()
+
+        start_date_str = None
+        end_date_str = None
+        
         # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
         if args.arg1 is not None and args.arg2 is None:
             # Store the days to search back in a variable.
@@ -521,13 +526,17 @@ def main():
     except ValueError as e:
         dlg = ErrorMessageBox()
         dlg.update_box_title("Date Input Error")
-
+        
         # We check for the message passed in ValueError. If it's a message with converting an int, then the error was with flow 1 so we use that error message.
         if "invalid literal for int()" in str(e):
             dlg.update_box_message("Invalid integer passed.")
+        # If instead it's the message indicating too many arguments, then the initial if condition was triggered and we set the error message accordingly.
+        elif "Too many arguments" in str(e):
+            dlg.update_box_message("Too many arguments. Please provide no more than two.")
         # Otherwise, the error must have been with one of the dates from flow 2 so we use that error message instead.
         else:
             dlg.update_box_message("Invalid date(s) passed.")
+        
         dlg.exec()
         sys.exit(1)
             
