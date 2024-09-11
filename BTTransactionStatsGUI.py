@@ -189,11 +189,9 @@ class ErrorMessageBox(QDialog):
         self.setLayout(self.layout)
 
     def update_box_message(self, new_message):
-        print(new_message)
         self.message.setText(f"{new_message}")
 
     def update_box_title(self, new_title):
-        print(new_title)
         self.setWindowTitle(f"{new_title}")
 
 class MainWindow(QMainWindow):
@@ -211,7 +209,6 @@ class MainWindow(QMainWindow):
                   merchant_id="pzrgxphnvtycmdhq",
                   public_key="932hj9f244t2bf6f",
                   private_key="74a190cdf990805edd5a329d5bff37c0"
-                  #74a190cdf990805edd5a329d5bff37c0
               )
             )
         except:
@@ -513,9 +510,16 @@ def main():
             
         # In this flow, the user entered two dates and so we just pass those into the conversion function to be formatted properly.
         elif args.arg1 is not None and args.arg2 is not None:
-            # Two arguments provided, treat them as start and end dates
             start_date_str = convertToYYYY(args.arg1)
             end_date_str = convertToYYYY(args.arg2)
+
+            # Converting to date objects so that we can compare them.
+            startDatetime = datetime.strptime(start_date_str, '%m/%d/%Y').date()
+            endDatetime = datetime.strptime(end_date_str, '%m/%d/%Y').date()
+
+            # Checking if the user entered a start date that is after the end date. If they did, we throw an error that will be caught in the except block.
+            if (startDatetime > endDatetime):
+                raise ValueError("Start date greater than end date")
             
         # If neither flow triggered, the user provided 0 arguments so we use the default behavior. Just submit the dates as NoneTypes and that'll be used to search the last 30 days in MainWindow.
 
@@ -533,6 +537,10 @@ def main():
         # If instead it's the message indicating too many arguments, then the initial if condition was triggered and we set the error message accordingly.
         elif "Too many arguments" in str(e):
             dlg.update_box_message("Too many arguments. Please provide no more than two.")
+        # If this is the error, then the user entered valid date strings, however the end date was before the start date.
+        elif "Start date greater than end date" in str(e):
+            # In this case, the default message already explains the error. So we just pass without updating the message.
+            pass
         # Otherwise, the error must have been with one of the dates from flow 2 so we use that error message instead.
         else:
             dlg.update_box_message("Invalid date(s) passed.")
