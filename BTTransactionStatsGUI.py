@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
     QDialogButtonBox
 )
 from braintree.exceptions.authentication_error import AuthenticationError
+from braintree.exceptions import *
 
 class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
@@ -365,12 +366,19 @@ class MainWindow(QMainWindow):
 
         transaction_average = 0.00
 
-        collection = self.gateway.transaction.search(
-          braintree.TransactionSearch.created_at.between(
-            startDateFormatted,
-            endDateFormatted
-          )
-        )
+        try:
+            collection = self.gateway.transaction.search(
+              braintree.TransactionSearch.created_at.between(
+                startDateFormatted,
+                endDateFormatted
+              )
+            )
+        except:
+            dlg = ErrorMessageBox()
+            dlg.update_box_message("There was an error connecting to Braintree. Please try again later.")
+            dlg.update_box_title("Braintree Search Error")
+            dlg.exec()
+            sys.exit(1)
 
         for transaction in collection.items:
             # If the transaction  has a successful status, add to the success count in the dictionary.
