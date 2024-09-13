@@ -492,11 +492,15 @@ def main():
 
         start_date_str = None
         end_date_str = None
-        
+
         # In this flow, the user only provided 1 argument; a single integer telling the function how many days back the search should go from todays date.
-        if args.arg1 is not None and args.arg2 is None:
+        if args.arg1 is not None and args.arg2 is None:                
             # Store the days to search back in a variable.
             days = int(args.arg1)
+
+            # Checking if the user entered a negative number. We throw an error if they did that will be caught later.
+            if (days < 0):
+                raise ValueError("Negative int")
 
             # Store todays date as the end date of the search.
             end_date = datetime.today()
@@ -534,6 +538,9 @@ def main():
         # We check for the message passed in ValueError. If it's a message with converting an int, then the error was with flow 1 so we use that error message.
         if "invalid literal for int()" in str(e):
             dlg.update_box_message("Invalid integer passed.")
+        # Checking for the negative int error thrown above.
+        elif "Negative int" in str(e):
+            dlg.update_box_message("The integer cannot be below 0.")
         # If instead it's the message indicating too many arguments, then the initial if condition was triggered and we set the error message accordingly.
         elif "Too many arguments" in str(e):
             dlg.update_box_message("Too many arguments. Please provide no more than two.")
@@ -551,4 +558,4 @@ def main():
     sys.exit(app.exec())
 
 if __name__ == "__main__":
-    main()
+    main()        
