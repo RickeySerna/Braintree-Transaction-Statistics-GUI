@@ -4,6 +4,7 @@ import sys
 import argparse
 import math
 import re
+from braintree.exceptions import *
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QPalette, QColor
@@ -22,8 +23,6 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox
 )
-from braintree.exceptions.authentication_error import AuthenticationError
-from braintree.exceptions import *
 
 class TransactionWidget(QWidget):
     def __init__(self, transaction_data):
@@ -200,7 +199,7 @@ class MainWindow(QMainWindow):
     def __init__(self, start_date=None, end_date=None):
         super(MainWindow, self).__init__()
 
-        self.setWindowTitle("My App")
+        self.setWindowTitle("Braintree Transaction Statistics")
 
         # Initialize the gateway
         try:
@@ -210,6 +209,7 @@ class MainWindow(QMainWindow):
                   merchant_id="pzrgxphnvtycmdhq",
                   public_key="932hj9f244t2bf6f",
                   private_key="74a190cdf990805edd5a329d5bff37c0"
+                  #74a190cdf990805edd5a329d5bff37c0
               )
             )
         except:
@@ -262,15 +262,7 @@ class MainWindow(QMainWindow):
             thirtyDaysAgoFormatted = datetime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day)
 
             self.datesWidget = DateWidget(thirtyDaysAgoFormatted, todayDateFormatted)
-            
-            try:
-                self.transaction_search(thirtyDaysAgo, todayDate)
-            except AuthenticationError:
-                dlg = ErrorMessageBox()
-                dlg.update_box_message("There was an issue with your API keys. Please make sure they're valid, then try again.")
-                dlg.update_box_title("API Key Error")
-                dlg.exec()
-                sys.exit(1)
+            self.transaction_search(thirtyDaysAgo, todayDate)
             
         else:
             # In this case, the dates have been provided via command line arguments.
@@ -284,15 +276,7 @@ class MainWindow(QMainWindow):
             self.end_date = None
 
             self.datesWidget = DateWidget(startDate, endDate)
-            
-            try:
-                self.transaction_search(startDate, endDate)
-            except AuthenticationError:
-                dlg = ErrorMessageBox()
-                dlg.update_box_message("There was an issue with your API keys. Please make sure they're valid, then try again.")
-                dlg.update_box_title("API Key Error")
-                dlg.exec()
-                sys.exit(1)
+            self.transaction_search(startDate, endDate)
 
         # Call handle_calendar_click function when the user clicks a date in the calendar.
         # UPDATE: Instead using the "clicked" handler here. Better allows for clicking the same date repeatedly.
@@ -375,7 +359,7 @@ class MainWindow(QMainWindow):
             )
         except:
             dlg = ErrorMessageBox()
-            dlg.update_box_message("There was an error connecting to Braintree. Please try again later.")
+            dlg.update_box_message("There was an error connecting to Braintree. Please ensure your API keys are valid or try again later.")
             dlg.update_box_title("Braintree Search Error")
             dlg.exec()
             sys.exit(1)
