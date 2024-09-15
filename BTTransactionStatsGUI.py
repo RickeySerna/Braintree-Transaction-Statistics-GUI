@@ -195,7 +195,6 @@ class ErrorMessageBox(QDialog):
         self.setWindowTitle(f"{new_title}")
 
 class MainWindow(QMainWindow):
-
     def __init__(self, start_date=None, end_date=None):
         super(MainWindow, self).__init__()
 
@@ -205,13 +204,21 @@ class MainWindow(QMainWindow):
         try:
             self.gateway = braintree.BraintreeGateway(
               braintree.Configuration(
-                  braintree.Environment.Sandbox,
-                  merchant_id="pzrgxphnvtycmdhq",
-                  public_key="932hj9f244t2bf6f",
-                  private_key="74a190cdf990805edd5a329d5bff37c0"
-                  #74a190cdf990805edd5a329d5bff37c0
+                  braintree.Environment.Production,
+                  merchant_id="",
+                  public_key="",
+                  private_key=""
               )
             )
+            # To use a sandbox gateway instead, uncomment the below section, then comment out the above production version.
+##            self.gateway = braintree.BraintreeGateway(
+##              braintree.Configuration(
+##                  braintree.Environment.Sandbox,
+##                  merchant_id="",
+##                  public_key="",
+##                  private_key=""
+##              )
+##            )
         except:
             dlg = ErrorMessageBox()
             dlg.update_box_message("Please enter your API keys in the file.")
@@ -235,9 +242,7 @@ class MainWindow(QMainWindow):
         # Initialize the layout immediately so that it doesn't error out when called in the search function.
         widget = QWidget()
         self.setCentralWidget(widget)
-        self.layout = QVBoxLayout(widget)
-        #widget.setLayout(self.layout)
-        
+        self.layout = QVBoxLayout(widget)        
 
         # Creating start date and end date variables which will be plugged into the Transaction.search() call.
         self.start_date = start_date
