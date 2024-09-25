@@ -23,6 +23,10 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox
 )
+from .error_message_box import ErrorMessageBox
+from .date_widget import DateWidget
+from .transaction_widget import TransactionWidget
+from .transaction_search_thread import TransactionSearchThread
 
 
 class MainWindow(QMainWindow):
@@ -33,23 +37,23 @@ class MainWindow(QMainWindow):
 
         # Initialize the gateway
         try:
+#            self.gateway = braintree.BraintreeGateway(
+#              braintree.Configuration(
+#                  braintree.Environment.Production,
+#                  merchant_id="",
+#                  public_key="",
+#                  private_key=""
+#              )
+#            )
+            # To use a sandbox gateway instead, uncomment the below section, then comment out the above production version.
             self.gateway = braintree.BraintreeGateway(
               braintree.Configuration(
-                  braintree.Environment.Production,
-                  merchant_id="",
-                  public_key="",
-                  private_key=""
+                  braintree.Environment.Sandbox,
+                  merchant_id="pzrgxphnvtycmdhq",
+                  public_key="932hj9f244t2bf6f",
+                  private_key="74a190cdf990805edd5a329d5bff37c0"
               )
             )
-            # To use a sandbox gateway instead, uncomment the below section, then comment out the above production version.
-##            self.gateway = braintree.BraintreeGateway(
-##              braintree.Configuration(
-##                  braintree.Environment.Sandbox,
-##                  merchant_id="",
-##                  public_key="",
-##                  private_key=""
-##              )
-##            )
         except:
             dlg = ErrorMessageBox()
             dlg.update_box_message("Please enter your API keys in the file.")
