@@ -1,0 +1,4 @@
+braintree==4.28.0
+PyQt6==6.7.1
+PyQt6_sip==13.6.0
+python-dotenv==1.0.1

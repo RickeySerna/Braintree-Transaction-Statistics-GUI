@@ -4,6 +4,8 @@ import sys
 import argparse
 import math
 import re
+import os
+from dotenv import load_dotenv
 from braintree.exceptions import *
 from datetime import date, datetime, timedelta
 from PyQt6.QtCore import QDate, Qt, QThread, pyqtSignal
@@ -29,29 +31,35 @@ from .transaction_widget import TransactionWidget
 from .transaction_search_thread import TransactionSearchThread
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self, start_date=None, end_date=None):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("Braintree Transaction Statistics")
 
+
+        load_dotenv()
+        MERCHANT_ID = os.getenv('MERCHANT_ID')
+        PUBLIC_KEY = os.getenv('PUBLIC_KEY')
+        PRIVATE_KEY = os.getenv('PRIVATE_KEY')
+        ENVIRONMENT = os.getenv('ENVIRONMENT')
+
+        environment_map = {
+            'Sandbox': braintree.Environment.Sandbox,
+            'Production': braintree.Environment.Production,
+            # Add other environments if needed
+        }
+
         # Initialize the gateway
         try:
-#            self.gateway = braintree.BraintreeGateway(
-#              braintree.Configuration(
-#                  braintree.Environment.Production,
-#                  merchant_id="",
-#                  public_key="",
-#                  private_key=""
-#              )
-#            )
             # To use a sandbox gateway instead, uncomment the below section, then comment out the above production version.
             self.gateway = braintree.BraintreeGateway(
               braintree.Configuration(
-                  braintree.Environment.Sandbox,
-                  merchant_id="pzrgxphnvtycmdhq",
-                  public_key="932hj9f244t2bf6f",
-                  private_key="74a190cdf990805edd5a329d5bff37c0"
+                  environment_map[ENVIRONMENT],
+                  merchant_id=MERCHANT_ID,
+                  public_key=PUBLIC_KEY,
+                  private_key=PRIVATE_KEY
               )
             )
         except:
