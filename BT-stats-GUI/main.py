@@ -23,8 +23,6 @@ from PyQt6.QtWidgets import (
     QDialog,
     QDialogButtonBox
 )
-from dotenv import load_dotenv
-import os
 from .transaction_widget import TransactionWidget
 from .transaction_search_thread import TransactionSearchThread
 from .date_widget import DateWidget

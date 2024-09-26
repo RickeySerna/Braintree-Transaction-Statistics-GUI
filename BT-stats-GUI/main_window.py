@@ -48,12 +48,10 @@ class MainWindow(QMainWindow):
         environment_map = {
             'Sandbox': braintree.Environment.Sandbox,
             'Production': braintree.Environment.Production,
-            # Add other environments if needed
         }
 
-        # Initialize the gateway
+        # Initializing the gateway.
         try:
-            # To use a sandbox gateway instead, uncomment the below section, then comment out the above production version.
             self.gateway = braintree.BraintreeGateway(
               braintree.Configuration(
                   environment_map[ENVIRONMENT],
