@@ -8,5 +8,5 @@ setup(
     license='',
     author='Rickey Serna',
     author_email='rickeyserna7@live.com',
-    description='A Python project which creates a GUI displaying statistics on transaciton in a Braintree gateway.'
+    description='A Python project which creates a GUI displaying statistics on transactions in a Braintree gateway.'
 )
