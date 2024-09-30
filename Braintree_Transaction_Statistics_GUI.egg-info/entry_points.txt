@@ -1,0 +1,2 @@
+[console_scripts]
+runstats = BT_stats_GUI.main:main

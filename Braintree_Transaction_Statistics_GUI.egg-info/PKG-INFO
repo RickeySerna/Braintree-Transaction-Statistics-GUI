@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: Braintree-Transaction-Statistics-GUI
+Version: 2.0.0
+Summary: A Python project which creates a GUI displaying statistics on transactions in a Braintree gateway.
+Home-page: 
+Author: Rickey Serna
+Author-email: rickeyserna7@live.com
